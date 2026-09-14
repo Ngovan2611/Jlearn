@@ -1,0 +1,19 @@
+# IntelliJ
+.idea/
+*.iml
+
+# Maven
+target/
+
+# Spring configuration - DO NOT PUSH
+application.yaml
+application.yml
+application.properties
+
+# Local configuration
+application-local.yaml
+application-local.yml
+application-local.properties
+
+# Environment
+.env
