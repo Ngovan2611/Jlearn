@@ -1,18 +1,15 @@
-package authenticate.dto.response;
+package authenticate.dto.request;
 
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.util.Set;
 
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @NoArgsConstructor
 @AllArgsConstructor
-public class AccountResponse {
-    String id;
-    String username;
-    Set<RoleResponse> roles;
+public class LogoutRequest {
+    String token;
+
 }

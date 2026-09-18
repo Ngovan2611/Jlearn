@@ -1,4 +1,4 @@
-package authenticate.dto.response;
+package authenticate.dto.request;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -9,11 +9,7 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class AuthResponse {
-
-    String accessToken;
+public class RefreshRequest {
 
     String refreshToken;
-
-    boolean authenticated;
 }

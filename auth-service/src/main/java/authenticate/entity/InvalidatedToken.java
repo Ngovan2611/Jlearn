@@ -6,6 +6,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.Set;
 
 @Entity
@@ -15,17 +16,11 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Account {
+public class InvalidatedToken {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     String id;
-    String username;
-    String password;
-    String email;
-    String status;
-    LocalDateTime createdAt;
-    LocalDateTime updatedAt;
+    @Temporal(TemporalType.TIMESTAMP)
+    Date expiryDate;
 
-    @ManyToMany
-    Set<Role> roles;
+
 }

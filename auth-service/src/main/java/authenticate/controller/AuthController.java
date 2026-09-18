@@ -3,6 +3,8 @@ package authenticate.controller;
 
 import authenticate.dto.request.AuthRequest;
 import authenticate.dto.request.IntrospectRequest;
+import authenticate.dto.request.LogoutRequest;
+import authenticate.dto.request.RefreshRequest;
 import authenticate.dto.response.ApiResponse;
 import authenticate.dto.response.AuthResponse;
 import authenticate.dto.response.IntrospectResponse;
@@ -26,14 +28,15 @@ public class AuthController {
     AuthService authService;
 
     @PostMapping("/login")
-    public ApiResponse<AuthResponse> login(@RequestBody AuthRequest authRequest) {
-
-        var result = authService.authenticate(authRequest);
+    public ApiResponse<AuthResponse> login(
+            @RequestBody AuthRequest request
+    ) {
 
         return ApiResponse.<AuthResponse>builder()
-                .result(result)
+                .result(
+                        authService.authenticate(request)
+                )
                 .build();
-
     }
 
     @PostMapping("/introspect")
@@ -47,5 +50,29 @@ public class AuthController {
                 .build();
 
 
+    }
+
+    @PostMapping("/logout")
+    public ApiResponse<Void> logout(
+            @RequestBody LogoutRequest request
+    ) throws ParseException, JOSEException {
+
+        authService.logout(request);
+
+        return ApiResponse.<Void>builder()
+                .build();
+    }
+
+
+    @PostMapping("/refresh")
+    public ApiResponse<AuthResponse> refresh(
+            @RequestBody RefreshRequest request
+    ) throws ParseException, JOSEException {
+
+        return ApiResponse.<AuthResponse>builder()
+                .result(
+                        authService.refreshToken(request)
+                )
+                .build();
     }
 }

@@ -4,6 +4,8 @@ package authenticate.dto.request;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.util.Set;
+
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -12,4 +14,5 @@ import lombok.experimental.FieldDefaults;
 public class AccountCreationRequest {
     String username;
     String password;
+    Set<String> roles;
 }
