@@ -31,4 +31,14 @@ public class AccountController {
 
         return response;
     }
+
+    @GetMapping("/info")
+    public ApiResponse<AccountResponse> info() {
+
+
+        return ApiResponse.<AccountResponse>builder()
+                .code(200)
+                .result(accountService.myInF())
+                .build();
+    }
 }
