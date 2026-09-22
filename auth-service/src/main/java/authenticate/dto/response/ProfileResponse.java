@@ -1,4 +1,4 @@
-package profile.dto.response;
+package authenticate.dto.response;
 
 import lombok.*;
 

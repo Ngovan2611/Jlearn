@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 import profile.dto.request.ProfileCreationRequest;
+import profile.dto.request.ProfileUpdateRequest;
 import profile.dto.response.ProfileResponse;
 import profile.entity.Profile;
 import profile.mapper.ProfileMapper;
@@ -33,6 +34,16 @@ public class ProfileService {
 
         Profile profile = profileRepository.findById(id).orElse(null);
         return profileMapper.toProfileResponse(profile);
+    }
+
+    public ProfileResponse updateProfile(String profileId, ProfileUpdateRequest profileUpdateRequest) {
+        Profile profile = profileRepository.findById(profileId)
+                .orElseThrow(() -> new RuntimeException("Profile not found"));
+
+        profileMapper.updateProfile(profileUpdateRequest, profile);
+        profileRepository.save(profile);
+        return profileMapper.toProfileResponse(profile);
+
     }
 
 }

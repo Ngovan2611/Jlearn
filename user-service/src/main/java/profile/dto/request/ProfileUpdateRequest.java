@@ -1,4 +1,5 @@
-package profile.dto.response;
+package profile.dto.request;
+
 
 import lombok.*;
 
@@ -9,8 +10,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @Builder
-public class ProfileResponse {
-    String id;
+public class ProfileUpdateRequest {
     String firstName;
     String lastName;
     String email;
