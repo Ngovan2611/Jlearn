@@ -3,6 +3,7 @@ package authenticate.service;
 
 import authenticate.config.PasswordEncoderConfig;
 import authenticate.dto.request.AccountCreationRequest;
+import authenticate.dto.request.ProfileCreationRequest;
 import authenticate.dto.response.AccountResponse;
 import authenticate.entity.Account;
 import authenticate.entity.Role;
@@ -11,9 +12,12 @@ import authenticate.exception.ErrorCode;
 import authenticate.mapper.AccountMapper;
 import authenticate.repository.AccountRepository;
 import authenticate.repository.RoleRepository;
+import authenticate.repository.httpclient.ProfileClient;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.experimental.NonFinal;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -30,16 +34,15 @@ public class AccountService {
     AccountMapper  accountMapper;
     PasswordEncoderConfig  passwordEncoderConfig;
     RoleService roleService;
+    ProfileClient profileClient;
+
 
     public AccountResponse createAccount(AccountCreationRequest accountCreationRequest) {
         Account account = accountMapper.toEntity(accountCreationRequest);
 
-
-
         if(accountRepository.existsAccountByUsername(accountCreationRequest.getUsername())) {
             throw new AppException(ErrorCode.USER_EXISTED);
         }
-
 
         account.setPassword(passwordEncoderConfig.passwordEncoder()
                 .encode(accountCreationRequest.getPassword()));
@@ -47,7 +50,15 @@ public class AccountService {
         var roles = roleService.getAllByNameIn(accountCreationRequest.getRoles());
         account.setRoles(new HashSet<>(roles));
 
-        return  accountMapper.toAccountResponse(accountRepository.save(account));
+
+        AccountResponse accountResponse = accountMapper.toAccountResponse(accountRepository.save(account));
+        ProfileCreationRequest profileCreationRequest = ProfileCreationRequest.builder()
+                .userId(account.getId())
+                .build();
+
+        profileClient.createProfile(profileCreationRequest);
+        return accountResponse;
+
     }
 
 

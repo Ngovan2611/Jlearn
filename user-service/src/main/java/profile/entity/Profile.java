@@ -28,4 +28,5 @@ public class Profile {
     String email;
     LocalDate dob;
     String gender;
+    String url;
 }
