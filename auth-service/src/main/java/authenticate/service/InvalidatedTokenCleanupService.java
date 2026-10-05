@@ -23,11 +23,8 @@ public class InvalidatedTokenCleanupService {
 
     @Scheduled(fixedRate = 60000)
     public void deleteExpiredTokens() {
-
         Date now = new Date();
-
         invalidatedTokenRepository.deleteByExpiryDateBefore(now);
-
         log.info("Cleaned up expired invalidated tokens at {}", now);
     }
 }
