@@ -1,4 +1,4 @@
-package authenticate.dto.request;
+package gateway.dto.response;
 
 
 import lombok.*;
@@ -10,7 +10,6 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class LogoutRequest {
-    String token;
-
+public class IntrospectResponse {
+    boolean valid;
 }

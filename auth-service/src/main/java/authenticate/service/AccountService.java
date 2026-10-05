@@ -6,26 +6,22 @@ import authenticate.dto.request.AccountCreationRequest;
 import authenticate.dto.request.ProfileCreationRequest;
 import authenticate.dto.response.AccountResponse;
 import authenticate.entity.Account;
-import authenticate.entity.Role;
 import authenticate.exception.AppException;
 import authenticate.exception.ErrorCode;
 import authenticate.mapper.AccountMapper;
 import authenticate.repository.AccountRepository;
-import authenticate.repository.RoleRepository;
 import authenticate.repository.httpclient.ProfileClient;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import lombok.experimental.NonFinal;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 
+@Slf4j
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
@@ -47,14 +43,18 @@ public class AccountService {
         account.setPassword(passwordEncoderConfig.passwordEncoder()
                 .encode(accountCreationRequest.getPassword()));
 
-        var roles = roleService.getAllByNameIn(accountCreationRequest.getRoles());
-        account.setRoles(new HashSet<>(roles));
+        var userRole = roleService.getRoleByName("USER");
+
+        account.setRoles(new HashSet<>());
+        account.getRoles().add(userRole);
 
 
         AccountResponse accountResponse = accountMapper.toAccountResponse(accountRepository.save(account));
         ProfileCreationRequest profileCreationRequest = ProfileCreationRequest.builder()
                 .userId(account.getId())
                 .build();
+
+
 
         profileClient.createProfile(profileCreationRequest);
         return accountResponse;
@@ -64,12 +64,12 @@ public class AccountService {
 
     public AccountResponse getAccountById(String id) {
         return accountMapper.toAccountResponse(accountRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED)));
+                .orElseThrow(() -> new AppException(ErrorCode.INVALID_CREDENTIALS)));
     }
 
     public Account getAccountByUsername(String username) {
         return accountRepository.findAccountByUsername(username)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+                .orElseThrow(() -> new AppException(ErrorCode.INVALID_CREDENTIALS));
     }
 
     public AccountResponse myInF() {

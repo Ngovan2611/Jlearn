@@ -79,7 +79,7 @@ public class AuthService {
 
         if (!authenticated) {
             throw new AppException(
-                    ErrorCode.UNAUTHENTICATED
+                    ErrorCode.INVALID_CREDENTIALS
             );
         }
 
@@ -115,6 +115,7 @@ public class AuthService {
         JWTClaimsSet claimsSet =
                 new JWTClaimsSet.Builder()
                         .subject(account.getUsername())
+                        .claim("accountId", account.getId())
                         .issuer("jlearn")
                         .issueTime(new Date())
                         .expirationTime(
@@ -233,25 +234,16 @@ public class AuthService {
             RefreshRequest request
     ) throws ParseException, JOSEException {
 
+        // 1. Verify refresh token
         String refreshToken = request.getRefreshToken();
 
-        // 1. Verify chữ ký + expiration
         SignedJWT signedJWT =
-                verifyToken(refreshToken);
+                verifyRefreshToken(refreshToken);
 
         JWTClaimsSet claims =
                 signedJWT.getJWTClaimsSet();
 
-        // 2. Kiểm tra type
-        String type =
-                claims.getStringClaim("type");
-
-        if (!"refresh".equals(type)) {
-            throw new AppException(
-                    ErrorCode.UNAUTHENTICATED
-            );
-        }
-
+        // 2. Lấy thông tin
         String jti =
                 claims.getJWTID();
 
@@ -261,7 +253,7 @@ public class AuthService {
         String sessionId =
                 claims.getStringClaim("sessionId");
 
-        // 3. Lấy token trong DB
+        // 3. Lấy refresh token trong DB
         RefreshToken storedToken =
                 refreshTokenRepository
                         .findById(jti)
@@ -270,18 +262,16 @@ public class AuthService {
                                         ErrorCode.UNAUTHENTICATED
                                 ));
 
-        // 4. REUSE DETECTION
+        // 4. Phát hiện reuse
         if (storedToken.isRevoked()) {
 
             log.warn(
-                    "Refresh token reuse detected. " +
-                            "jti={}, sessionId={}, username={}",
+                    "Refresh token reuse detected. jti={}, sessionId={}, username={}",
                     jti,
                     sessionId,
                     username
             );
 
-            // Thu hồi toàn bộ session
             refreshTokenService
                     .revokeBySessionId(sessionId);
 
@@ -290,66 +280,60 @@ public class AuthService {
             );
         }
 
-        // 5. Kiểm tra expiry trong DB
-        if (storedToken
-                .getExpiryDate()
-                .before(new Date())) {
+        // 5. Kiểm tra expiry DB
+        if (storedToken.getExpiryDate().before(new Date())) {
 
             storedToken.setRevoked(true);
 
-            refreshTokenRepository.save(
-                    storedToken
-            );
+            refreshTokenRepository.save(storedToken);
 
             throw new AppException(
                     ErrorCode.UNAUTHENTICATED
             );
         }
 
-        // 6. Kiểm tra sessionId
-        if (!sessionId.equals(
-                storedToken.getSessionId()
-        )) {
+        // 6. Kiểm tra session
+        if (!sessionId.equals(storedToken.getSessionId())) {
 
             throw new AppException(
                     ErrorCode.UNAUTHENTICATED
             );
         }
 
-        // 7. Revoke token cũ
+        // 7. Revoke RT cũ
         storedToken.setRevoked(true);
+        refreshTokenRepository.save(storedToken);
 
-        // 8. Tạo access token mới
+        // 8. Lấy account
         Account account =
-                accountService.getAccountByUsername(
-                        username
-                );
+                accountService.getAccountByUsername(username);
 
+        // 9. Tạo access token mới
         String accessToken =
                 generateAccessToken(account);
 
-        // 9. Tạo refresh token mới
+        // 10. Tạo refresh token mới
         String newRefreshToken =
                 generateRefreshToken(
                         account,
                         sessionId
                 );
 
-        // 10. Lấy JTI của token mới
+        // 11. Lấy JTI RT mới
         SignedJWT newSignedJWT =
                 SignedJWT.parse(newRefreshToken);
 
         String newJti =
-                newSignedJWT.getJWTClaimsSet()
+                newSignedJWT
+                        .getJWTClaimsSet()
                         .getJWTID();
 
-        // 11. Gắn quan hệ R1 → R2
+        // 12. Gắn RT cũ -> RT mới
         storedToken.setReplacedBy(newJti);
 
-        refreshTokenRepository.save(
-                storedToken
-        );
+        refreshTokenRepository.save(storedToken);
 
+        // 13. Response
         return AuthResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(newRefreshToken)
@@ -443,6 +427,7 @@ public class AuthService {
     }
 
 
+
     // =========================
     // VERIFY ACCESS TOKEN
     // =========================
@@ -511,15 +496,21 @@ public class AuthService {
 
     public IntrospectResponse introspect(
             IntrospectRequest request
-    ) throws ParseException, JOSEException {
+    ) {
 
-        verifyAccessToken(
-                request.getToken()
-        );
+        try {
+            verifyAccessToken(request.getToken());
 
-        return IntrospectResponse.builder()
-                .valid(true)
-                .build();
+            return IntrospectResponse.builder()
+                    .valid(true)
+                    .build();
+
+        } catch (Exception e) {
+
+            return IntrospectResponse.builder()
+                    .valid(false)
+                    .build();
+        }
     }
 
 

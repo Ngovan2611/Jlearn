@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
+@RequestMapping("/auth")
 public class AccountController {
     AccountService accountService;
 
