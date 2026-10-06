@@ -31,6 +31,13 @@ public class ApplicationInitConfig {
     ApplicationRunner initApplicationRunner(AccountRepository accountRepository) {
         return args -> {
 
+            Role userRole = roleRepository.findByName("USER")
+                    .orElseGet(() -> roleRepository.save(
+                            Role.builder()
+                                    .name("USER")
+                                    .build()
+                    ));
+
             Role adminRole = roleRepository.findByName("ADMIN")
                     .orElseGet(() -> {
                         Role admin = Role.builder()
