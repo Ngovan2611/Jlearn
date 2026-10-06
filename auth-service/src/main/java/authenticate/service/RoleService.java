@@ -36,9 +36,6 @@ public class RoleService {
 
     }
 
-    public List<Role> getAllByNameIn(Iterable<String> names) {
-        return roleRepository.findAllByNameIn(names);
-    }
 
     public Role getRoleByName(String name) {
         return roleRepository.findByName(name).orElseThrow(() ->
