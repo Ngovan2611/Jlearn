@@ -20,6 +20,13 @@ public class LessonController {
 
     LessonService lessonService;
 
+    @GetMapping
+    public ApiResponse<List<LessonResponse>> getAllLessons() {
+        return ApiResponse.<List<LessonResponse>>builder()
+                .code(200)
+                .result(lessonService.getAllLesson())
+                .build();
+    }
     // =========================
     // CREATE
     // =========================
