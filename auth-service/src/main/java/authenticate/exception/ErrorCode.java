@@ -17,7 +17,8 @@ public enum ErrorCode {
     USER_NOT_EXISTED(1002, "user not existed",  HttpStatus.BAD_REQUEST),
     INVALID_TOKEN(1314, "invalid token", HttpStatus.UNAUTHORIZED),
     ROLE_NOT_EXISTED(1003, "role not existed", HttpStatus.BAD_REQUEST),
-    INVALID_CREDENTIALS(1000, "Tài khoản hoặc mật khẩu không chính xác", HttpStatus.UNAUTHORIZED);
+    INVALID_CREDENTIALS(1000, "Tài khoản hoặc mật khẩu không chính xác", HttpStatus.UNAUTHORIZED),
+    DISCONNECTED(9999, "Không thể kết nối tới cơ sở dữ liệu", HttpStatus.INTERNAL_SERVER_ERROR);
 
 
 

@@ -91,4 +91,9 @@ public class LessonService {
                 .map(lessonMapper::toLessonResponse)
                 .toList();
     }
+
+    public List<LessonResponse> getAllLesson() {
+        return lessonRepository.findAll().stream()
+                .map(lessonMapper::toLessonResponse).toList();
+    }
 }

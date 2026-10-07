@@ -1,13 +1,13 @@
-package course.config;
+package exercise.config;
 
 
-import course.dto.response.ApiResponse;
-import course.exception.ErrorCode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import exercise.dto.response.ApiResponse;
+import exercise.exception.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
-import tools.jackson.databind.ObjectMapper;
 
 
 import java.io.IOException;

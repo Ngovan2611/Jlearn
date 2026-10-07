@@ -1,4 +1,4 @@
-package course.config;
+package exercise.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -10,15 +10,16 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 
+
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
 
     @Autowired
-    private CustomJwtDecoder customJwtDecoder;
+    private CustomJwtDecoder  customJwtDecoder;
 
     private static final String[] PUBLIC_ENDPOINTS = {
-            "/internal/**"
+        "internal/**"
     };
 
     @Bean
