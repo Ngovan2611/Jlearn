@@ -1,6 +1,7 @@
 package exercise.controller;
 
 import exercise.dto.request.ExerciseRequest;
+import exercise.dto.response.ApiResponse;
 import exercise.dto.response.ExerciseResponse;
 import exercise.service.ExerciseService;
 import jakarta.validation.Valid;
@@ -24,10 +25,13 @@ public class ExerciseController {
     // =========================
 
     @PostMapping
-    public ExerciseResponse createExercise(
+    public ApiResponse<ExerciseResponse> createExercise(
             @RequestBody @Valid ExerciseRequest request
     ) {
-        return exerciseService.createExercise(request);
+        return ApiResponse.<ExerciseResponse>builder()
+                .code(200)
+                .result(exerciseService.createExercise(request))
+                .build();
     }
 
     // =========================
@@ -35,10 +39,13 @@ public class ExerciseController {
     // =========================
 
     @GetMapping("/{exerciseId}")
-    public ExerciseResponse getExercise(
+    public ApiResponse<ExerciseResponse> getExercise(
             @PathVariable String exerciseId
     ) {
-        return exerciseService.getExercise(exerciseId);
+        return ApiResponse.<ExerciseResponse>builder()
+                .code(200)
+                .result(exerciseService.getExercise(exerciseId))
+                .build();
     }
 
     // =========================
@@ -46,10 +53,13 @@ public class ExerciseController {
     // =========================
 
     @GetMapping("/lesson/{lessonId}")
-    public List<ExerciseResponse> getExercisesByLesson(
+    public ApiResponse<List<ExerciseResponse>> getExercisesByLesson(
             @PathVariable String lessonId
     ) {
-        return exerciseService.getExercisesByLesson(lessonId);
+        return ApiResponse.<List<ExerciseResponse>>builder()
+                .code(200)
+                .result(exerciseService.getExercisesByLesson(lessonId))
+                .build();
     }
 
     // =========================
@@ -57,10 +67,25 @@ public class ExerciseController {
     // =========================
 
     @GetMapping("/course/{courseId}")
-    public List<ExerciseResponse> getExercisesByCourse(
+    public ApiResponse<List<ExerciseResponse>> getExercisesByCourse(
             @PathVariable String courseId
     ) {
-        return exerciseService.getExercisesByCourse(courseId);
+        return ApiResponse.<List<ExerciseResponse>>builder()
+                .code(200)
+                .result(exerciseService.getExercisesByCourse(courseId))
+                .build();
+    }
+
+    // =========================
+    // GET FREE PRACTICE
+    // =========================
+
+    @GetMapping("/practice")
+    public ApiResponse<List<ExerciseResponse>> getFreeExercises() {
+        return ApiResponse.<List<ExerciseResponse>>builder()
+                .code(200)
+                .result(exerciseService.getFreeExercises())
+                .build();
     }
 
     // =========================
@@ -68,14 +93,19 @@ public class ExerciseController {
     // =========================
 
     @PutMapping("/{exerciseId}")
-    public ExerciseResponse updateExercise(
+    public ApiResponse<ExerciseResponse> updateExercise(
             @PathVariable String exerciseId,
             @RequestBody @Valid ExerciseRequest request
     ) {
-        return exerciseService.updateExercise(
-                exerciseId,
-                request
-        );
+        return ApiResponse.<ExerciseResponse>builder()
+                .code(200)
+                .result(
+                        exerciseService.updateExercise(
+                                exerciseId,
+                                request
+                        )
+                )
+                .build();
     }
 
     // =========================
@@ -83,9 +113,14 @@ public class ExerciseController {
     // =========================
 
     @DeleteMapping("/{exerciseId}")
-    public void deleteExercise(
+    public ApiResponse<Void> deleteExercise(
             @PathVariable String exerciseId
     ) {
         exerciseService.deleteExercise(exerciseId);
+
+        return ApiResponse.<Void>builder()
+                .code(200)
+                .message("Exercise deleted successfully")
+                .build();
     }
 }

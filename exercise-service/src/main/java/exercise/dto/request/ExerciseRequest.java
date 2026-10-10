@@ -15,10 +15,8 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ExerciseRequest {
 
-    @NotBlank(message = "Course ID is required")
     String courseId;
 
-    @NotBlank(message = "Lesson ID is required")
     String lessonId;
 
     @NotBlank(message = "Title is required")

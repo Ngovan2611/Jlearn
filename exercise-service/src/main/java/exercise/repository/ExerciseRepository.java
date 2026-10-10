@@ -8,11 +8,13 @@ import java.util.List;
 public interface ExerciseRepository
         extends MongoRepository<Exercise, String> {
 
-    List<Exercise> findByCourseId(String courseId);
+    List<Exercise> findByLessonIdAndPublishedTrue(
+            String lessonId
+    );
 
-    List<Exercise> findByLessonId(String lessonId);
+    List<Exercise> findByCourseId(
+            String courseId
+    );
 
-    List<Exercise> findByPublishedTrue();
-
-    List<Exercise> findByLessonIdAndPublishedTrue(String lessonId);
+    List<Exercise> findByLessonIdIsNull();
 }

@@ -29,11 +29,24 @@ public class ExerciseService {
 
     CourseClient courseClient;
 
+    // =========================================================
+    // CREATE
+    // =========================================================
+
     @PreAuthorize("hasRole('ADMIN')")
     public ExerciseResponse createExercise(
             ExerciseRequest request
     ) {
 
+        /*
+         * Có lessonId
+         * -> Đây là bài tập thuộc khóa học
+         * -> Kiểm tra Course + Lesson
+         *
+         * Không có lessonId
+         * -> Đây là bài tập tự do
+         * -> Không cần gọi Course Service
+         */
         validateCourseAndLesson(
                 request.getCourseId(),
                 request.getLessonId()
@@ -49,6 +62,10 @@ public class ExerciseService {
         );
     }
 
+    // =========================================================
+    // GET BY ID
+    // =========================================================
+
     public ExerciseResponse getExercise(
             String exerciseId
     ) {
@@ -56,13 +73,19 @@ public class ExerciseService {
         Exercise exercise =
                 exerciseRepository.findById(exerciseId)
                         .orElseThrow(() ->
-                                new AppException(ErrorCode.EXERCISE_NOT_EXISTED)
+                                new AppException(
+                                        ErrorCode.EXERCISE_NOT_EXISTED
+                                )
                         );
 
         return exerciseMapper.toExerciseResponse(
                 exercise
         );
     }
+
+    // =========================================================
+    // GET EXERCISES BY LESSON
+    // =========================================================
 
     public List<ExerciseResponse> getExercisesByLesson(
             String lessonId
@@ -75,6 +98,10 @@ public class ExerciseService {
                 .toList();
     }
 
+    // =========================================================
+    // GET EXERCISES BY COURSE
+    // =========================================================
+
     public List<ExerciseResponse> getExercisesByCourse(
             String courseId
     ) {
@@ -86,6 +113,23 @@ public class ExerciseService {
                 .toList();
     }
 
+    // =========================================================
+    // GET FREE PRACTICE
+    // =========================================================
+
+    public List<ExerciseResponse> getFreeExercises() {
+
+        return exerciseRepository
+                .findByLessonIdIsNull()
+                .stream()
+                .map(exerciseMapper::toExerciseResponse)
+                .toList();
+    }
+
+    // =========================================================
+    // UPDATE
+    // =========================================================
+
     @PreAuthorize("hasRole('ADMIN')")
     public ExerciseResponse updateExercise(
             String exerciseId,
@@ -95,8 +139,11 @@ public class ExerciseService {
         Exercise exercise =
                 exerciseRepository.findById(exerciseId)
                         .orElseThrow(() ->
-                                new AppException(ErrorCode.EXERCISE_NOT_EXISTED)
+                                new AppException(
+                                        ErrorCode.EXERCISE_NOT_EXISTED
+                                )
                         );
+
 
         validateCourseAndLesson(
                 request.getCourseId(),
@@ -115,39 +162,75 @@ public class ExerciseService {
         );
     }
 
+    // =========================================================
+    // DELETE
+    // =========================================================
+
     @PreAuthorize("hasRole('ADMIN')")
     public void deleteExercise(
             String exerciseId
     ) {
 
         if (!exerciseRepository.existsById(exerciseId)) {
-            throw new AppException(ErrorCode.EXERCISE_NOT_EXISTED);
+            throw new AppException(
+                    ErrorCode.EXERCISE_NOT_EXISTED
+            );
         }
 
         exerciseRepository.deleteById(exerciseId);
     }
+
+    // =========================================================
+    // VALIDATE COURSE + LESSON
+    // =========================================================
 
     private void validateCourseAndLesson(
             String courseId,
             String lessonId
     ) {
 
-        CourseResponse course =
-                courseClient.getCourse(courseId);
 
-        if (course == null) {
-            throw new AppException(ErrorCode.COURSE_NOT_EXISTED);
+        if (courseId == null && lessonId == null) {
+            return;
         }
 
-        LessonResponse lesson =
-                courseClient.getLesson(lessonId);
+        if (lessonId != null) {
 
-        if (lesson == null) {
-            throw new AppException(ErrorCode.LESSON_NOT_EXISTED);
+            if (courseId == null) {
+                throw new AppException(
+                        ErrorCode.COURSE_NOT_EXISTED
+                );
+            }
+
+            CourseResponse course =
+                    courseClient.getCourse(courseId);
+
+            if (course == null) {
+                throw new AppException(
+                        ErrorCode.COURSE_NOT_EXISTED
+                );
+            }
+
+            LessonResponse lesson =
+                    courseClient.getLesson(lessonId);
+
+            if (lesson == null) {
+                throw new AppException(
+                        ErrorCode.LESSON_NOT_EXISTED
+                );
+            }
+
+            if (!courseId.equals(lesson.getCourseId())) {
+                throw new AppException(
+                        ErrorCode.LESSON_NOT_BELONG_TO_THIS_COURSE
+                );
+            }
+
+            return;
         }
 
-        if (!courseId.equals(lesson.getCourseId())) {
-            throw new AppException(ErrorCode.LESSON_NOT_BELONG_TO_THIS_COURSE);
-        }
+        throw new AppException(
+                ErrorCode.LESSON_NOT_EXISTED
+        );
     }
 }
