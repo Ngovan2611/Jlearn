@@ -1,19 +1,21 @@
 package execution.model;
 
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class CodeExecutionCommand {
 
-    private String sourceCode;
+    String sourceCode;
 
-    private String language;
+    String language;
 
-    private String stdin;
+    String stdin;
 
-    private Integer timeoutMs;
+    Integer timeoutMs;
 }
