@@ -1,21 +1,23 @@
 package execution.model;
 
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class CodeExecutionResult {
 
-    private String status;
+    String status;
 
-    private String stdout;
+    String stdout;
 
-    private String stderr;
+    String stderr;
 
-    private long executionTime;
+    long executionTime;
 
-    private Integer exitCode;
+    Integer exitCode;
 }
