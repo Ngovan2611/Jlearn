@@ -15,7 +15,6 @@ public class TestCaseRequest {
 
     String id;
 
-    @NotBlank(message = "Input is required")
     String input;
 
     @NotBlank(message = "Expected output is required")

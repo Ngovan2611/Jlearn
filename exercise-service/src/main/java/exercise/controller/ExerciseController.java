@@ -16,7 +16,7 @@ import java.util.List;
 @RequestMapping("/exercises")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class ExerciseController {
+public class    ExerciseController {
 
     ExerciseService exerciseService;
 

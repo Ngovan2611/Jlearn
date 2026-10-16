@@ -28,10 +28,22 @@ public class InternalController {
         return courseService.getCourseById(courseId);
     }
 
+    @GetMapping("/internal/lessons/{lessonId}")
+    public LessonResponse getLesson(
+            @PathVariable("lessonId") String lessonId
+    ) {
+        return lessonService.getLesson(lessonId);
+    }
+
     @GetMapping("/internal/lessons/course/{courseId}")
     public List<LessonResponse> getLessonsByCourse(
             @PathVariable("courseId") String courseId
     ) {
         return lessonService.getLessonsByCourseId(courseId);
     }
+    @GetMapping("/internal/courses/published")
+    public List<CourseResponse> getPublishedCourses() {
+        return courseService.getAllCoursesPublished();
+    }
+
 }

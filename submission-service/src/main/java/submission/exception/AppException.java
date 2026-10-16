@@ -1,6 +1,5 @@
 package submission.exception;
 
-import course.exception.ErrorCode;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

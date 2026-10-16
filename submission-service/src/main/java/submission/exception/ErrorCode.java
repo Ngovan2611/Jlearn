@@ -18,14 +18,8 @@ public enum ErrorCode {
     INVALID_TOKEN(1314, "invalid token", HttpStatus.UNAUTHORIZED),
     ROLE_NOT_EXISTED(1003, "role not existed", HttpStatus.BAD_REQUEST),
     UNAUTHORIZED(1004, "You dont have permission", HttpStatus.BAD_REQUEST),
-    COURSE_EXISTED(1111, "course existed", HttpStatus.BAD_REQUEST),
-    COURSE_NOT_EXISTED(1112, "course not existed", HttpStatus.BAD_REQUEST),
+    SUBMISSION_NOT_FOUND(1015, "submission not found", HttpStatus.NOT_FOUND);
 
-    CATEGORY_EXISTED(1112, "category existed", HttpStatus.BAD_REQUEST),
-    CATEGORY_NOT_EXISTED(1112, "category not existed", HttpStatus.BAD_REQUEST),
-
-    LESSON_EXISTED(1112, "lesson not existed", HttpStatus.BAD_REQUEST),
-    LESSON_NOT_EXISTED(1112, "lesson not existed", HttpStatus.BAD_REQUEST);
 
 
 
