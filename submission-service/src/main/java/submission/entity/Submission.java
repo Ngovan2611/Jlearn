@@ -3,12 +3,11 @@ package submission.entity;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.mapping.Document;
-import submission.enums.SubmissionStatus;
+import submission.enums.GradingStatus;
+
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 
 @Getter
 @Setter
@@ -16,45 +15,33 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "submissions")
+@CompoundIndex(name = "user_exercise_idx", def = "{'userId': 1, 'exerciseId': 1}", unique = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Submission {
 
     @Id
     String id;
 
-    @Indexed
     String userId;
 
-    @Indexed
     String exerciseId;
 
     String sourceCode;
 
+    String language;
+
     @Builder.Default
-    String language = "JAVA";
+    GradingStatus gradingStatus = GradingStatus.PENDING;
 
-    SubmissionStatus status;
-
+    // Điểm do AI Tutor trả về, tối đa 100.
     Double score;
 
-    Integer passedTestCases;
+    // Nhận xét tổng quan từ AI.
+    String feedback;
 
-    Integer totalTestCases;
-
-    Long executionTimeMs;
-
-    Long memoryUsedKb;
-
-    String compileOutput;
-
-    String errorMessage;
-
-    @Builder.Default
-    List<CaseResult> testCaseResults = new ArrayList<>();
-
+    // Thời điểm nộp bài đầu tiên.
     Instant submittedAt;
 
-    Instant completedAt;
-
-
+    // Thời điểm AI hoàn thành chấm bài mới nhất.
+    Instant gradedAt;
 }

@@ -33,6 +33,7 @@ public class LessonService {
         }
 
         Lesson lesson = lessonMapper.toLessonEntity(lessonRequest);
+        lesson.setPublished(true);
         lessonRepository.save(lesson);
         return lessonMapper.toLessonResponse(lesson);
     }

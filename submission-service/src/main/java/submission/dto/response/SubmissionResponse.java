@@ -1,39 +1,30 @@
 package submission.dto.response;
 
 import lombok.*;
-import submission.enums.SubmissionStatus;
+import lombok.experimental.FieldDefaults;
+import submission.enums.GradingStatus;
 
 import java.time.Instant;
-import java.util.List;
 
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class SubmissionResponse {
 
     String id;
     String userId;
     String exerciseId;
+    String sourceCode;
     String language;
 
-    SubmissionStatus status;
+    GradingStatus gradingStatus;
 
-    double score;
-    int passedTestCases;
-    int totalTestCases;
-
-    Long executionTimeMs;
-    Long memoryUsedKb;
-
-    String compileOutput;
-    String errorMessage;
-
-    List<TestCaseResultResponse> testCaseResults;
+    Double score;
+    String feedback;
 
     Instant submittedAt;
-    Instant completedAt;
-
-
+    Instant gradedAt;
 }

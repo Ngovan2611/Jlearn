@@ -34,6 +34,7 @@ public class CourseService {
 
         Course course = courseMapper.toEntity(courseRequest);
 
+        course.setPublished(true);
         return  courseMapper.toResponse(courseRepository.save(course));
     }
 
@@ -73,5 +74,13 @@ public class CourseService {
                 () -> new AppException(ErrorCode.COURSE_NOT_EXISTED));
 
         return courseMapper.toResponse(course);
+    }
+
+    public List<CourseResponse> getAllCoursesPublished()
+    {
+        List<Course> courses = courseRepository.findByPublishedTrue();
+        return  courses.stream()
+                .map(courseMapper::toResponse).toList();
+
     }
 }

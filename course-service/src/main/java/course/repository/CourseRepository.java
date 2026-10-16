@@ -11,6 +11,7 @@ public interface CourseRepository extends MongoRepository<Course,String> {
 
     List<Course> findByCategoryId(String categoryId);
 
+    List<Course> findByPublishedTrue();
 
 
 }
