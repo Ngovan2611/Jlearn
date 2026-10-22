@@ -14,5 +14,4 @@ import java.util.Set;
 public class AccountCreationRequest {
     String username;
     String password;
-    Set<String> roles;
 }

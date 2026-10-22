@@ -20,8 +20,22 @@ public class IdentityService {
     IdentityClient identityClient;
 
     public Mono<ApiResponse<IntrospectResponse>> introspect(String token) {
+        IntrospectRequest request = IntrospectRequest.builder()
+                .token(token)
+                .build();
 
-        return identityClient.introspect(IntrospectRequest.builder()
-                .token(token).build());
+        return identityClient.introspect(request)
+                .onErrorResume(throwable -> {
+                    log.error("Lỗi xác thực Introspect Token từ Auth Service: {}", throwable.getMessage());
+
+                    ApiResponse<IntrospectResponse> fallbackResponse = ApiResponse
+                            .<IntrospectResponse>builder()
+                            .code(1008)
+                            .message("unauthenticated")
+                            .result(IntrospectResponse.builder().valid(false).build())
+                            .build();
+
+                    return Mono.just(fallbackResponse);
+                });
     }
 }

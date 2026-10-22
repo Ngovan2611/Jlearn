@@ -24,14 +24,13 @@ import java.util.HashSet;
 public class ApplicationInitConfig {
 
     PasswordEncoderConfig passwordEncoderConfig;
-    RoleService roleService;
     RoleRepository roleRepository;
 
     @Bean
     ApplicationRunner initApplicationRunner(AccountRepository accountRepository) {
         return args -> {
 
-            Role userRole = roleRepository.findByName("USER")
+            roleRepository.findByName("USER")
                     .orElseGet(() -> roleRepository.save(
                             Role.builder()
                                     .name("USER")
