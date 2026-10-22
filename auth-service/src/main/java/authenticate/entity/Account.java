@@ -1,6 +1,7 @@
 package authenticate.entity;
 
 
+import authenticate.enums.Status;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -22,7 +23,7 @@ public class Account {
     String username;
     String password;
     String email;
-    String status;
+    String status = Status.ACTIVE.toString();
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
 

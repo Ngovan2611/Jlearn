@@ -4,8 +4,12 @@ package authenticate.service;
 import authenticate.config.PasswordEncoderConfig;
 import authenticate.dto.request.AccountCreationRequest;
 import authenticate.dto.request.ProfileCreationRequest;
+import authenticate.dto.request.UpdateStatusAccountRequest;
 import authenticate.dto.response.AccountResponse;
+import authenticate.dto.response.PageResponse;
+import authenticate.dto.response.UserBasicResponse;
 import authenticate.entity.Account;
+import authenticate.enums.Role;
 import authenticate.exception.AppException;
 import authenticate.exception.ErrorCode;
 import authenticate.mapper.AccountMapper;
@@ -15,6 +19,10 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -43,7 +51,7 @@ public class AccountService {
         account.setPassword(passwordEncoderConfig.passwordEncoder()
                 .encode(accountCreationRequest.getPassword()));
 
-        var userRole = roleService.getRoleByName("USER");
+        var userRole = roleService.getRoleByName(Role.USER.toString());
 
         account.setRoles(new HashSet<>());
         account.getRoles().add(userRole);
@@ -62,10 +70,6 @@ public class AccountService {
     }
 
 
-    public AccountResponse getAccountById(String id) {
-        return accountMapper.toAccountResponse(accountRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.INVALID_CREDENTIALS)));
-    }
 
     public Account getAccountByUsername(String username) {
         return accountRepository.findAccountByUsername(username)
@@ -82,5 +86,40 @@ public class AccountService {
         return accountMapper.toAccountResponse(account);
 
 
+    }
+    @PreAuthorize("hasRole('ADMIN')")
+    public PageResponse<UserBasicResponse> getAllUsersBasic(String keyword, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("username").ascending());
+        String searchKeyword = (keyword != null) ? keyword.trim() : "";
+
+        var pageData = accountRepository.searchUsersBasicExceptAdmin(searchKeyword, pageable);
+
+        return PageResponse.<UserBasicResponse>builder()
+                .currentPage(page)
+                .pageSize(pageData.getSize())
+                .totalPages(pageData.getTotalPages())
+                .totalElements(pageData.getTotalElements())
+                .data(pageData.getContent())
+                .build();
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    public UserBasicResponse updateAccountStatus(String accountId, UpdateStatusAccountRequest request) {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new AppException(ErrorCode.INVALID_CREDENTIALS));
+
+        try {
+            account.setStatus(request.getStatus());
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Trạng thái không hợp lệ! Chỉ chấp nhận ACTIVE hoặc LOCKED.");
+        }
+
+        Account savedAccount = accountRepository.save(account);
+
+        return UserBasicResponse.builder()
+                .accountId(savedAccount.getId())
+                .username(savedAccount.getUsername())
+                .status(savedAccount.getStatus())
+                .build();
     }
 }

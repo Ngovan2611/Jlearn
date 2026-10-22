@@ -34,31 +34,12 @@ public class RefreshTokenService {
                         new AppException(ErrorCode.UNAUTHENTICATED));
     }
 
-    public RefreshToken getActiveToken(String id) {
-        RefreshToken refreshToken = refreshTokenRepository
-                .findByIdAndRevokedFalse(id)
-                .orElseThrow(() ->
-                        new AppException(ErrorCode.UNAUTHENTICATED));
-
-        if (refreshToken.getExpiryDate().before(new Date())) {
-            refreshToken.setRevoked(true);
-            refreshTokenRepository.save(refreshToken);
-
-            throw new AppException(ErrorCode.UNAUTHENTICATED);
-        }
-
-        return refreshToken;
-    }
 
     public void revoke(RefreshToken token) {
         token.setRevoked(true);
         refreshTokenRepository.save(token);
     }
 
-    public void revokeById(String id) {
-        RefreshToken token = getById(id);
-        revoke(token);
-    }
 
     public void revokeBySessionId(String sessionId) {
 
