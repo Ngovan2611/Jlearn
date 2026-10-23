@@ -3,6 +3,7 @@ package course.controller;
 import course.dto.request.LessonRequest;
 import course.dto.response.ApiResponse;
 import course.dto.response.LessonResponse;
+import course.dto.response.PageResponse;
 import course.service.LessonService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -21,64 +22,58 @@ public class LessonController {
     LessonService lessonService;
 
     @GetMapping
-    public ApiResponse<List<LessonResponse>> getAllLessons() {
-        return ApiResponse.<List<LessonResponse>>builder()
+    public ApiResponse<PageResponse<LessonResponse>> getAllLessons(
+            @RequestParam(required = false, defaultValue = "") String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ApiResponse.<PageResponse<LessonResponse>>builder()
                 .code(200)
-                .result(lessonService.getAllLesson())
+                .result(lessonService.getAllLessonsPaging(keyword, page, size))
                 .build();
     }
-    // =========================
-    // CREATE
-    // =========================
+
     @PostMapping
     public ApiResponse<LessonResponse> createLesson(
             @RequestBody @Valid LessonRequest request
     ) {
         return ApiResponse.<LessonResponse>builder()
+                .code(200)
                 .result(lessonService.createLesson(request))
                 .build();
     }
 
-    // =========================
-    // UPDATE
-    // =========================
     @PutMapping("/{lessonId}")
     public ApiResponse<LessonResponse> updateLesson(
             @PathVariable String lessonId,
             @RequestBody @Valid LessonRequest request
     ) {
         return ApiResponse.<LessonResponse>builder()
+                .code(200)
                 .result(lessonService.updateLesson(lessonId, request))
                 .build();
     }
 
-    // =========================
-    // GET BY ID
-    // =========================
     @GetMapping("/{lessonId}")
     public ApiResponse<LessonResponse> getLesson(
             @PathVariable String lessonId
     ) {
         return ApiResponse.<LessonResponse>builder()
+                .code(200)
                 .result(lessonService.getLesson(lessonId))
                 .build();
     }
 
-    // =========================
-    // GET BY COURSE
-    // =========================
     @GetMapping("/course/{courseId}")
     public ApiResponse<List<LessonResponse>> getLessonsByCourse(
             @PathVariable String courseId
     ) {
         return ApiResponse.<List<LessonResponse>>builder()
+                .code(200)
                 .result(lessonService.getLessonsByCourseId(courseId))
                 .build();
     }
 
-    // =========================
-    // DELETE
-    // =========================
     @DeleteMapping("/{lessonId}")
     public ApiResponse<Void> deleteLesson(
             @PathVariable String lessonId
@@ -86,7 +81,15 @@ public class LessonController {
         lessonService.deleteLesson(lessonId);
 
         return ApiResponse.<Void>builder()
+                .code(200)
                 .message("Lesson deleted successfully")
+                .build();
+    }
+    @PatchMapping("/{lessonId}/toggle-status")
+    public ApiResponse<LessonResponse> toggleLessonStatus(@PathVariable String lessonId) {
+        return ApiResponse.<LessonResponse>builder()
+                .code(200)
+                .result(lessonService.toggleLessonStatus(lessonId))
                 .build();
     }
 }

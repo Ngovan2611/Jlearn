@@ -19,10 +19,6 @@ public class TestCaseController {
 
     TestCaseService testCaseService;
 
-    // =========================
-    // GET ALL TEST CASES
-    // =========================
-
     @GetMapping
     public List<TestCaseResponse> getTestCases(
             @PathVariable String exerciseId
@@ -30,9 +26,7 @@ public class TestCaseController {
         return testCaseService.getTestCases(exerciseId);
     }
 
-    // =========================
-    // GET TEST CASE BY ID
-    // =========================
+
 
     @GetMapping("/{testCaseId}")
     public TestCaseResponse getTestCase(
@@ -45,9 +39,7 @@ public class TestCaseController {
         );
     }
 
-    // =========================
-    // CREATE TEST CASE
-    // =========================
+
 
     @PostMapping
     public TestCaseResponse addTestCase(
@@ -60,9 +52,7 @@ public class TestCaseController {
         );
     }
 
-    // =========================
-    // UPDATE TEST CASE
-    // =========================
+
 
     @PutMapping("/{testCaseId}")
     public TestCaseResponse updateTestCase(
