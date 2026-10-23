@@ -3,11 +3,13 @@ package course.controller;
 import course.dto.request.CourseRequest;
 import course.dto.response.ApiResponse;
 import course.dto.response.CourseResponse;
+import course.dto.response.PageResponse;
 import course.service.CourseService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,15 +18,36 @@ import java.util.List;
 @RequestMapping("/courses")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@Slf4j
 public class CourseController {
 
     CourseService courseService;
+
+    // API Phân trang & Tìm kiếm khóa học
+    @GetMapping
+    public ApiResponse<PageResponse<CourseResponse>> getAllCourses(
+            @RequestParam(required = false, defaultValue = "") String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        log.info("[GET /courses] Request received - keyword: '{}', page: {}, size: {}", keyword, page, size);
+
+        PageResponse<CourseResponse> result = courseService.getAllCoursesPaging(keyword, page, size);
+
+        log.info("[GET /courses] Response returned - totalElements: {}, totalPages: {}, currentItems: {}",
+                result.getTotalElements(), result.getTotalPages(), result.getData().size());
+        return ApiResponse.<PageResponse<CourseResponse>>builder()
+                .code(200)
+                .result(courseService.getAllCoursesPaging(keyword, page, size))
+                .build();
+    }
 
     @PostMapping
     public ApiResponse<CourseResponse> createCourse(
             @RequestBody @Valid CourseRequest request
     ) {
         return ApiResponse.<CourseResponse>builder()
+                .code(200)
                 .result(courseService.createCourse(request))
                 .build();
     }
@@ -35,14 +58,17 @@ public class CourseController {
             @RequestBody @Valid CourseRequest request
     ) {
         return ApiResponse.<CourseResponse>builder()
+                .code(200)
                 .result(courseService.updateCourse(courseId, request))
                 .build();
     }
 
-    @GetMapping
-    public ApiResponse<List<CourseResponse>> getAllCourses() {
-        return ApiResponse.<List<CourseResponse>>builder()
-                .result(courseService.getAllCourses())
+    @DeleteMapping("/{courseId}")
+    public ApiResponse<Void> deleteCourse(@PathVariable String courseId) {
+        courseService.deleteCourse(courseId);
+        return ApiResponse.<Void>builder()
+                .code(200)
+                .message("Course deleted successfully")
                 .build();
     }
 
@@ -51,6 +77,7 @@ public class CourseController {
             @PathVariable String categoryId
     ) {
         return ApiResponse.<List<CourseResponse>>builder()
+                .code(200)
                 .result(courseService.getCoursesByCategoryId(categoryId))
                 .build();
     }
@@ -60,6 +87,13 @@ public class CourseController {
         return ApiResponse.<CourseResponse>builder()
                 .code(200)
                 .result(courseService.getCourseById(courseId))
+                .build();
+    }
+    @PatchMapping("/{courseId}/toggle-status")
+    public ApiResponse<CourseResponse> toggleCourseStatus(@PathVariable String courseId) {
+        return ApiResponse.<CourseResponse>builder()
+                .code(200)
+                .result(courseService.toggleCourseStatus(courseId))
                 .build();
     }
 }
