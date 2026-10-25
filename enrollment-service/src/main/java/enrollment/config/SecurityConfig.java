@@ -18,7 +18,7 @@ public class SecurityConfig {
     private CustomJwtDecoder customJwtDecoder;
 
     private static final String[] PUBLIC_ENDPOINTS = {
-            "/internal/**"
+            "/internal/**", "/profile/internal/**"
     };
 
     @Bean

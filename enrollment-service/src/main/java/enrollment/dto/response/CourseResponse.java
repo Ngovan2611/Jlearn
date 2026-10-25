@@ -3,6 +3,8 @@ package enrollment.dto.response;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -13,4 +15,5 @@ public class CourseResponse {
     String id;
 
     String title;
+    List<String> skills;
 }

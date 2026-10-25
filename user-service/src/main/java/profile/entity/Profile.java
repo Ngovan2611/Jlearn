@@ -1,13 +1,12 @@
 package profile.entity;
 
 import lombok.*;
-import org.springframework.data.neo4j.core.schema.GeneratedValue;
-import org.springframework.data.neo4j.core.schema.Id;
-import org.springframework.data.neo4j.core.schema.Node;
-import org.springframework.data.neo4j.core.schema.Property;
+import org.springframework.data.neo4j.core.schema.*;
 import org.springframework.data.neo4j.core.support.UUIDStringGenerator;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Node
 @NoArgsConstructor
@@ -29,4 +28,7 @@ public class Profile {
     LocalDate dob;
     String gender;
     String url;
+    @Builder.Default
+    @Relationship(type = "HAS_SKILL", direction = Relationship.Direction.OUTGOING)
+    private List<Skill> skills = new ArrayList<>();
 }

@@ -23,4 +23,6 @@ public interface CourseClient {
     List<LessonResponse> getLessonsByCourse(
             @PathVariable("courseId") String courseId
     );
+    @GetMapping("/internal/courses")
+    List<CourseResponse> getAllCourses();
 }

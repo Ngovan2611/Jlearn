@@ -1,3 +1,4 @@
+
 package exercise.repository;
 
 import exercise.entity.Exercise;
@@ -16,5 +17,13 @@ public interface ExerciseRepository
             String courseId
     );
 
-    List<Exercise> findByLessonIdIsNull();
+    long countByPublishedTrue();
+
+    long countByPublishedFalse();
+
+    long countByDifficultyIgnoreCase(String difficulty);
+
+    long countByPublishedTrueAndDifficultyIgnoreCase(
+            String difficulty
+    );
 }

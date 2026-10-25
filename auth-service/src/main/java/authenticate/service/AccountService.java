@@ -27,6 +27,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 
 @Slf4j
@@ -56,6 +57,7 @@ public class AccountService {
         account.setRoles(new HashSet<>());
         account.getRoles().add(userRole);
 
+        account.setCreatedAt(LocalDateTime.now());
 
         AccountResponse accountResponse = accountMapper.toAccountResponse(accountRepository.save(account));
         ProfileCreationRequest profileCreationRequest = ProfileCreationRequest.builder()
@@ -122,4 +124,10 @@ public class AccountService {
                 .status(savedAccount.getStatus())
                 .build();
     }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    public long getTotalUsers() {
+        return accountRepository.countUsersExceptAdmin();
+    }
+
 }
