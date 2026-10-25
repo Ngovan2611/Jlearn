@@ -33,15 +33,11 @@ public class Submission {
     @Builder.Default
     GradingStatus gradingStatus = GradingStatus.PENDING;
 
-    // Điểm do AI Tutor trả về, tối đa 100.
     Double score;
 
-    // Nhận xét tổng quan từ AI.
     String feedback;
 
-    // Thời điểm nộp bài đầu tiên.
     Instant submittedAt;
 
-    // Thời điểm AI hoàn thành chấm bài mới nhất.
     Instant gradedAt;
 }

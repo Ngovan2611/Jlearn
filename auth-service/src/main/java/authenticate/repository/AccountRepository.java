@@ -24,4 +24,13 @@ public interface AccountRepository extends JpaRepository<Account, String> {
             "       OR LOWER(a.username) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
             "       OR LOWER(a.id) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     Page<UserBasicResponse> searchUsersBasicExceptAdmin(@Param("keyword") String keyword, Pageable pageable);
+
+    @Query("""
+    SELECT COUNT(DISTINCT a.id)
+    FROM Account a
+    JOIN a.roles r
+    WHERE UPPER(r.name) NOT IN ('ADMIN', 'ROLE_ADMIN')
+""")
+    long countUsersExceptAdmin();
+
 }

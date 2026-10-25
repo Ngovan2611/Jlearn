@@ -62,4 +62,13 @@ public class AccountController {
                 .result(accountService.updateAccountStatus(accountId, request))
                 .build();
     }
+
+    @GetMapping("/admin/statistics")
+    public ApiResponse<Long> getStatistics() {
+        return ApiResponse.<Long>builder()
+                .code(200)
+                .result(accountService.getTotalUsers())
+                .build();
+    }
+
 }

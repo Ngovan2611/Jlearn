@@ -123,4 +123,10 @@ public class CourseService {
 
         return courseMapper.toResponse(courseRepository.save(course));
     }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    public long getTotalCourses() {
+        return courseRepository.count();
+    }
+
 }

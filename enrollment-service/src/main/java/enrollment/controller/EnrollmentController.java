@@ -1,7 +1,9 @@
 package enrollment.controller;
 
 import enrollment.dto.response.ApiResponse;
+import enrollment.dto.response.CourseEnrollmentOverviewResponse;
 import enrollment.dto.response.EnrollmentResponse;
+import enrollment.dto.response.EnrollmentStatisticsResponse;
 import enrollment.service.EnrollmentService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -83,7 +85,23 @@ public class EnrollmentController {
 
         return ApiResponse.<Void>builder()
                 .code(200)
-                .message("Enrollment cancelled")
+                .build();
+    }
+    @GetMapping("/statistics")
+    public ApiResponse<EnrollmentStatisticsResponse> getStatistics() {
+        return ApiResponse.<EnrollmentStatisticsResponse>builder()
+                .code(200)
+                .result(enrollmentService.getStatistics())
+                .build();
+    }
+    @GetMapping("/statistics/courses")
+    public ApiResponse<CourseEnrollmentOverviewResponse>
+    getCourseEnrollmentStatistics() {
+
+        return ApiResponse.<CourseEnrollmentOverviewResponse>builder()
+                .code(200)
+                .message("Course enrollment statistics retrieved successfully")
+                .result(enrollmentService.getCourseEnrollmentStatistics())
                 .build();
     }
 }

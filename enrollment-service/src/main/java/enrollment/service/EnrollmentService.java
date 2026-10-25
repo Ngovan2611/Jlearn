@@ -1,7 +1,6 @@
 package enrollment.service;
 
-import enrollment.dto.response.CourseResponse;
-import enrollment.dto.response.EnrollmentResponse;
+import enrollment.dto.response.*;
 import enrollment.entity.CourseProgress;
 import enrollment.entity.Enrollment;
 import enrollment.exception.AppException;
@@ -19,7 +18,10 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -207,4 +209,129 @@ public class EnrollmentService {
 
         return jwt.getClaimAsString("accountId");
     }
+
+    public EnrollmentStatisticsResponse getStatistics() {
+        List<Enrollment> enrollments = enrollmentRepository.findAll();
+
+        long total = enrollments.size();
+
+        long completed = enrollments.stream()
+                .filter(enrollment ->
+                        "COMPLETED".equalsIgnoreCase(
+                                enrollment.getStatus()
+                        ))
+                .count();
+
+        double completionRate = total == 0
+                ? 0.0
+                : Math.round((double) completed / total * 10000.0)
+                / 100.0;
+
+        return EnrollmentStatisticsResponse.builder()
+                .totalEnrollments(total)
+                .completedEnrollments(completed)
+                .completionRate(completionRate)
+                .build();
+    }
+
+    public CourseEnrollmentOverviewResponse getCourseEnrollmentStatistics() {
+
+        // Lấy tất cả khóa học, bao gồm khóa học chưa có người đăng ký.
+        List<CourseResponse> allCourses = courseClient.getAllCourses();
+
+        // Lấy các lượt đăng ký, sau đó loại bỏ những lượt đã hủy.
+        List<Enrollment> enrollments =
+                enrollmentRepository.findAllActiveEnrollments();
+
+        Map<String, Long> enrollmentCounts = new LinkedHashMap<>();
+        Map<String, Long> completedCounts = new LinkedHashMap<>();
+
+        for (Enrollment enrollment : enrollments) {
+            String courseId = enrollment.getCourseId();
+
+            if (courseId == null || courseId.isBlank()) {
+                continue;
+            }
+
+            // Tổng lượt đăng ký hợp lệ.
+            enrollmentCounts.merge(courseId, 1L, Long::sum);
+
+            // Đếm lượt đăng ký đã hoàn thành.
+            if ("COMPLETED".equalsIgnoreCase(
+                    String.valueOf(enrollment.getStatus()))) {
+                completedCounts.merge(courseId, 1L, Long::sum);
+            }
+        }
+
+        // Tổng lượt đăng ký hợp lệ trên toàn hệ thống.
+        long totalEnrollments = enrollmentCounts.values()
+                .stream()
+                .mapToLong(Long::longValue)
+                .sum();
+
+        List<CourseEnrollmentStatisticsResponse> courses = allCourses
+                .stream()
+                .filter(course -> course.getId() != null)
+                .map(course -> {
+                    String courseId = course.getId();
+
+                    // Khóa học chưa có lượt đăng ký sẽ nhận giá trị 0.
+                    long enrollmentCount =
+                            enrollmentCounts.getOrDefault(courseId, 0L);
+
+                    long completedCount =
+                            completedCounts.getOrDefault(courseId, 0L);
+
+                    // Tỷ trọng lượt đăng ký của khóa học.
+                    double enrollmentShare = totalEnrollments == 0
+                            ? 0.0
+                            : Math.round(
+                            enrollmentCount * 10000.0
+                                    / totalEnrollments
+                    ) / 100.0;
+
+                    // Tỷ lệ hoàn thành của khóa học.
+                    double completionRate = enrollmentCount == 0
+                            ? 0.0
+                            : Math.round(
+                            completedCount * 10000.0
+                                    / enrollmentCount
+                    ) / 100.0;
+
+                    return CourseEnrollmentStatisticsResponse.builder()
+                            .courseId(courseId)
+                            .courseTitle(course.getTitle())
+                            .enrollmentCount(enrollmentCount)
+                            .totalEnrollments(totalEnrollments)
+                            .enrollmentShare(enrollmentShare)
+                            .completedCount(completedCount)
+                            .completionRate(completionRate)
+                            .build();
+                })
+                .sorted(
+                        Comparator.comparingLong(
+                                        CourseEnrollmentStatisticsResponse
+                                                ::getEnrollmentCount
+                                ).reversed()
+                                .thenComparing(
+                                        CourseEnrollmentStatisticsResponse
+                                                ::getCourseTitle,
+                                        Comparator.nullsLast(
+                                                String.CASE_INSENSITIVE_ORDER
+                                        )
+                                )
+                )
+                .toList();
+
+        long coursesWithEnrollments = courses.stream()
+                .filter(course -> course.getEnrollmentCount() > 0)
+                .count();
+
+        return CourseEnrollmentOverviewResponse.builder()
+                .totalEnrollments(totalEnrollments)
+                .totalCoursesWithEnrollments(coursesWithEnrollments)
+                .courses(courses)
+                .build();
+    }
+
 }

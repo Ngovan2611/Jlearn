@@ -3,6 +3,7 @@ package exercise.controller;
 import exercise.dto.request.ExerciseRequest;
 import exercise.dto.response.ApiResponse;
 import exercise.dto.response.ExerciseResponse;
+import exercise.dto.response.PageResponse;
 import exercise.service.ExerciseService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -81,10 +82,20 @@ public class    ExerciseController {
     // =========================
 
     @GetMapping("/practice")
-    public ApiResponse<List<ExerciseResponse>> getFreeExercises() {
-        return ApiResponse.<List<ExerciseResponse>>builder()
+    public ApiResponse<PageResponse<ExerciseResponse>> getFreeExercises(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String difficulty,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ApiResponse.<PageResponse<ExerciseResponse>>builder()
                 .code(200)
-                .result(exerciseService.getFreeExercises())
+                .result(exerciseService.getFreeExercises(
+                        keyword,
+                        difficulty,
+                        page,
+                        size
+                ))
                 .build();
     }
 
@@ -123,4 +134,20 @@ public class    ExerciseController {
                 .message("Exercise deleted successfully")
                 .build();
     }
+    @GetMapping
+    public ApiResponse<PageResponse<ExerciseResponse>> getAllExercises(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String lessonId,
+            @RequestParam(required = false) String difficulty,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ApiResponse.<PageResponse<ExerciseResponse>>builder()
+                .code(200)
+                .result(exerciseService.getAllExercisesPaging(
+                        keyword, lessonId, difficulty, page, size
+                ))
+                .build();
+    }
+
 }

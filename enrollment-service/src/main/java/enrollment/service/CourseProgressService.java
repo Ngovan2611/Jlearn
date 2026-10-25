@@ -1,7 +1,9 @@
 package enrollment.service;
 
+import enrollment.dto.request.AddSkillsRequest;
 import enrollment.dto.request.ProgressUpdateRequest;
 import enrollment.dto.response.CourseProgressResponse;
+import enrollment.dto.response.CourseResponse;
 import enrollment.dto.response.LessonResponse;
 import enrollment.entity.CourseProgress;
 import enrollment.entity.Enrollment;
@@ -11,6 +13,7 @@ import enrollment.mapper.CourseProgressMapper;
 import enrollment.repository.CourseProgressRepository;
 import enrollment.repository.EnrollmentRepository;
 import enrollment.repository.httpClient.CourseClient;
+import enrollment.repository.httpClient.ProfileClient;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -22,6 +25,8 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -32,34 +37,24 @@ public class CourseProgressService {
     EnrollmentRepository enrollmentRepository;
     CourseClient courseClient;
     CourseProgressMapper courseProgressMapper;
+    ProfileClient profileClient;
 
-    public CourseProgressResponse getProgress(
-            String courseId
-    ) {
-
+    public CourseProgressResponse getProgress(String courseId) {
         String userId = getCurrentUserId();
 
-        CourseProgress progress =
-                courseProgressRepository
-                        .findByUserIdAndCourseId(
-                                userId,
-                                courseId
-                        )
-                        .orElseThrow(() ->
-                                new AppException(
-                                        ErrorCode.PROGRESS_NOT_FOUND
-                                )
-                        );
+        CourseProgress progress = courseProgressRepository
+                .findByUserIdAndCourseId(userId, courseId)
+                .orElseThrow(() ->
+                        new AppException(ErrorCode.PROGRESS_NOT_FOUND)
+                );
 
         return courseProgressMapper.toResponse(progress);
     }
 
     public List<CourseProgressResponse> getMyProgress() {
-
         String userId = getCurrentUserId();
 
-        return courseProgressRepository
-                .findByUserId(userId)
+        return courseProgressRepository.findByUserId(userId)
                 .stream()
                 .map(courseProgressMapper::toResponse)
                 .toList();
@@ -69,132 +64,160 @@ public class CourseProgressService {
             String courseId,
             ProgressUpdateRequest request
     ) {
-
         String userId = getCurrentUserId();
 
-        // 1. Kiểm tra user đã đăng ký khóa học
-        Enrollment enrollment =
-                enrollmentRepository
-                        .findByUserIdAndCourseId(
-                                userId,
-                                courseId
-                        )
-                        .orElseThrow(() ->
-                                new AppException(
-                                        ErrorCode.ENROLLMENT_NOT_FOUND
-                                )
-                        );
+        // 1. Kiểm tra đăng ký khóa học
+        Enrollment enrollment = enrollmentRepository
+                .findByUserIdAndCourseId(userId, courseId)
+                .orElseThrow(() ->
+                        new AppException(ErrorCode.ENROLLMENT_NOT_FOUND)
+                );
 
         // 2. Chỉ enrollment ACTIVE mới được cập nhật
         if (!"ACTIVE".equals(enrollment.getStatus())) {
-            throw new AppException(
-                    ErrorCode.ENROLLMENT_NOT_ACTIVE
-            );
+            throw new AppException(ErrorCode.ENROLLMENT_NOT_ACTIVE);
         }
 
-        // 3. Lấy danh sách lesson của khóa học
+        // 3. Lấy danh sách bài học của khóa học
         List<LessonResponse> lessons =
                 courseClient.getLessonsByCourse(courseId);
 
         if (lessons == null || lessons.isEmpty()) {
-            throw new AppException(
-                    ErrorCode.COURSE_NOT_FOUND
-            );
+            throw new AppException(ErrorCode.COURSE_NOT_FOUND);
         }
 
-        // 4. Kiểm tra lesson có thuộc course không
-        boolean lessonExists =
-                lessons.stream()
-                        .anyMatch(lesson ->
-                                lesson.getId()
-                                        .equals(request.getLessonId())
-                        );
+        // 4. Kiểm tra lesson có thuộc khóa học không
+        String lessonId = request.getLessonId();
+
+        boolean lessonExists = lessons.stream()
+                .filter(Objects::nonNull)
+                .anyMatch(lesson ->
+                        Objects.equals(lesson.getId(), lessonId)
+                );
 
         if (!lessonExists) {
-            throw new AppException(
-                    ErrorCode.COURSE_NOT_FOUND
-            );
+            throw new AppException(ErrorCode.COURSE_NOT_FOUND);
         }
 
-        // 5. Lấy hoặc tạo CourseProgress
-        CourseProgress progress =
-                courseProgressRepository
-                        .findByUserIdAndCourseId(
-                                userId,
-                                courseId
-                        )
-                        .orElseGet(() ->
-                                CourseProgress.builder()
-                                        .userId(userId)
-                                        .courseId(courseId)
-                                        .progress(0.0)
-                                        .completed(false)
-                                        .completedLessonIds(
-                                                new HashSet<>()
-                                        )
-                                        .build()
-                        );
+        // 5. Lấy hoặc tạo tiến độ
+        CourseProgress progress = courseProgressRepository
+                .findByUserIdAndCourseId(userId, courseId)
+                .orElseGet(() ->
+                        CourseProgress.builder()
+                                .userId(userId)
+                                .courseId(courseId)
+                                .progress(0.0)
+                                .completed(false)
+                                .completedLessonIds(new HashSet<>())
+                                .updatedAt(LocalDateTime.now())
+                                .build()
+                );
 
-        // 6. Đảm bảo Set không null
-        if (progress.getCompletedLessonIds() == null) {
-            progress.setCompletedLessonIds(
-                    new HashSet<>()
-            );
+        // Lưu trạng thái cũ trước khi thay đổi
+        boolean wasCompleted =
+                Boolean.TRUE.equals(progress.getCompleted());
+
+        // 6. Đảm bảo danh sách lesson không null
+        Set<String> completedLessonIds =
+                progress.getCompletedLessonIds();
+
+        if (completedLessonIds == null) {
+            completedLessonIds = new HashSet<>();
+            progress.setCompletedLessonIds(completedLessonIds);
         }
 
-        // 7. Đánh dấu lesson hoàn thành
-        progress.getCompletedLessonIds()
-                .add(request.getLessonId());
+        // 7. Đánh dấu lesson đã hoàn thành
+        completedLessonIds.add(lessonId);
 
-        // 8. Tính progress
+        // 8. Tính tiến độ dựa trên số lesson hợp lệ
         int totalLessons = lessons.size();
 
-        int completedLessons =
-                progress.getCompletedLessonIds().size();
+        int completedLessons = (int) lessons.stream()
+                .filter(Objects::nonNull)
+                .map(LessonResponse::getId)
+                .filter(completedLessonIds::contains)
+                .distinct()
+                .count();
 
-        double percentage =
-                ((double) completedLessons / totalLessons) * 100;
+        double percentage = Math.round(
+                ((double) completedLessons / totalLessons) * 10000.0
+        ) / 100.0;
 
-        percentage =
-                Math.round(percentage * 100.0) / 100.0;
+        boolean completed = completedLessons >= totalLessons;
 
         progress.setProgress(percentage);
-
-        // 9. Kiểm tra hoàn thành khóa học
-        boolean completed =
-                completedLessons >= totalLessons;
-
         progress.setCompleted(completed);
+        progress.setUpdatedAt(LocalDateTime.now());
 
-        progress.setUpdatedAt(
-                LocalDateTime.now()
-        );
+        // 9. Lưu tiến độ
+        progress = courseProgressRepository.save(progress);
 
-        // 10. Lưu
-        progress =
-                courseProgressRepository.save(progress);
-
-        // 11. Hoàn thành toàn bộ khóa học
+        // 10. Khi hoàn thành khóa học, cập nhật enrollment
         if (completed) {
-
             enrollment.setStatus("COMPLETED");
-
             enrollmentRepository.save(enrollment);
+
+            // Chỉ đồng bộ kỹ năng khi chuyển từ chưa hoàn thành
+            // sang hoàn thành.
+            if (!wasCompleted) {
+                syncCourseSkillsToProfile(userId, courseId);
+            }
         }
 
         return courseProgressMapper.toResponse(progress);
     }
 
+
+    private void syncCourseSkillsToProfile(
+            String userId,
+            String courseId
+    ) {
+        CourseResponse course = courseClient.getCourse(courseId);
+
+        if (course == null
+                || course.getSkills() == null
+                || course.getSkills().isEmpty()) {
+            return;
+        }
+
+        List<String> skills = course.getSkills().stream()
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .filter(skill -> !skill.isBlank())
+                .distinct()
+                .toList();
+
+        if (skills.isEmpty()) {
+            return;
+        }
+
+        AddSkillsRequest request = AddSkillsRequest.builder()
+                .skills(skills)
+                .build();
+
+        profileClient.addSkills(userId, request);
+    }
+
     private String getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder
+                .getContext()
+                .getAuthentication();
 
-        Authentication authentication =
-                SecurityContextHolder
-                        .getContext()
-                        .getAuthentication();
+        if (authentication == null
+                || !(authentication.getPrincipal() instanceof Jwt jwt)) {
+            throw new IllegalStateException(
+                    "Không thể xác định người dùng từ JWT"
+            );
+        }
 
-        Jwt jwt =
-                (Jwt) authentication.getPrincipal();
+        String userId = jwt.getClaimAsString("accountId");
 
-        return jwt.getClaimAsString("accountId");
+        if (userId == null || userId.isBlank()) {
+            throw new IllegalStateException(
+                    "JWT không chứa claim accountId"
+            );
+        }
+
+        return userId;
     }
 }

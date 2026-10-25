@@ -3,6 +3,7 @@ package submission.service;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -30,9 +31,6 @@ public class SubmissionService {
     SubmissionMapper submissionMapper;
     // AiGradingService aiGradingService;
 
-    /**
-     * Lấy ID người dùng từ JWT trong SecurityContextHolder.
-     */
     private String getCurrentUserId() {
         Authentication authentication =
                 SecurityContextHolder.getContext().getAuthentication();
@@ -53,7 +51,7 @@ public class SubmissionService {
         }
 
         if (userId == null || userId.isBlank()) {
-            throw new IllegalStateException("USER_ID_NOT_FOUND");
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
 
         return userId;
@@ -61,6 +59,7 @@ public class SubmissionService {
 
     /**
      * Nộp bài tập (Ghi đè bài cũ nếu đã từng nộp).
+     * Tạm thời gán điểm trực tiếp = 9.
      */
     public SubmissionResponse submit(SubmissionRequest request) {
         String userId = getCurrentUserId();
@@ -69,26 +68,27 @@ public class SubmissionService {
                 .findByUserIdAndExerciseId(userId, request.getExerciseId());
 
         Submission submission;
+        Instant now = Instant.now();
 
         if (existingSubmission.isPresent()) {
-            // GHI ĐÈ BÀI CŨ: Map toàn bộ request vào entity cũ
             submission = existingSubmission.get();
             submissionMapper.updateEntityFromRequest(request, submission);
 
-            // Reset các thông tin chấm điểm
-            submission.setGradingStatus(GradingStatus.PENDING);
-            submission.setScore(null);
-            submission.setFeedback(null);
-            submission.setSubmittedAt(Instant.now());
-            submission.setGradedAt(null);
+            submission.setGradingStatus(GradingStatus.COMPLETED);
+            submission.setScore(9.0);
+            submission.setFeedback("Bài làm tốt! (Điểm giả lập tạm thời)");
+            submission.setSubmittedAt(now);
+            submission.setGradedAt(now);
         } else {
             // TẠO MỚI: Map toàn bộ request sang entity mới
             submission = submissionMapper.toEntity(request);
 
-            // Thiết lập các thông tin ban đầu
             submission.setUserId(userId);
-            submission.setGradingStatus(GradingStatus.PENDING);
-            submission.setSubmittedAt(Instant.now());
+            submission.setGradingStatus(GradingStatus.COMPLETED);
+            submission.setScore(9.0);
+            submission.setFeedback("Bài làm tốt! (Điểm giả lập tạm thời)");
+            submission.setSubmittedAt(now);
+            submission.setGradedAt(now);
         }
 
         Submission saved = submissionRepository.save(submission);
@@ -148,12 +148,11 @@ public class SubmissionService {
         return submissionMapper.toResponseList(submissions);
     }
 
-    /**
-     * Kiểm tra quyền sở hữu bài nộp.
-     */
+
     private void checkOwner(Submission submission, String userId) {
         if (!userId.equals(submission.getUserId())) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
     }
+
 }

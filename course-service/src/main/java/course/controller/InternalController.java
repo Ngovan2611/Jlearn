@@ -46,4 +46,9 @@ public class InternalController {
         return courseService.getAllCoursesPublished();
     }
 
+    @GetMapping("/internal/courses")
+    public List<CourseResponse> getCourses() {
+        return courseService.getAllCourses();
+    }
+
 }

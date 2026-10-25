@@ -23,22 +23,18 @@ public class CourseController {
 
     CourseService courseService;
 
-    // API Phân trang & Tìm kiếm khóa học
     @GetMapping
     public ApiResponse<PageResponse<CourseResponse>> getAllCourses(
             @RequestParam(required = false, defaultValue = "") String keyword,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "8") int size
     ) {
-        log.info("[GET /courses] Request received - keyword: '{}', page: {}, size: {}", keyword, page, size);
+        PageResponse<CourseResponse> result =
+                courseService.getAllCoursesPaging(keyword, page, size);
 
-        PageResponse<CourseResponse> result = courseService.getAllCoursesPaging(keyword, page, size);
-
-        log.info("[GET /courses] Response returned - totalElements: {}, totalPages: {}, currentItems: {}",
-                result.getTotalElements(), result.getTotalPages(), result.getData().size());
         return ApiResponse.<PageResponse<CourseResponse>>builder()
                 .code(200)
-                .result(courseService.getAllCoursesPaging(keyword, page, size))
+                .result(result)
                 .build();
     }
 
@@ -96,4 +92,13 @@ public class CourseController {
                 .result(courseService.toggleCourseStatus(courseId))
                 .build();
     }
+
+    @GetMapping("/statistics")
+    public ApiResponse<Long> getStatistics() {
+        return ApiResponse.<Long>builder()
+                .code(200)
+                .result(courseService.getTotalCourses())
+                .build();
+    }
+
 }
