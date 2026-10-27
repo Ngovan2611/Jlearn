@@ -1,0 +1,1519 @@
+/* =========================================================
+   GLOBAL
+   ========================================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+.exercise-page,
+.practice-page {
+    min-height: 100vh;
+    background: #f4f7fb;
+    color: #172033;
+}
+
+
+/* =========================================================
+   WORKSPACE
+   ========================================================= */
+
+.exercise-workspace {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    align-items: stretch;
+}
+
+
+/* =========================================================
+   SIDEBAR - DANH SÁCH BÀI
+   ========================================================= */
+
+.exercise-sidebar {
+    flex: 0 0 280px;
+    width: 280px;
+    min-width: 280px;
+    min-height: 100vh;
+    padding: 24px 16px;
+    background: #f4f7fb;
+    border-right: 1px solid #e5eaf2;
+    box-shadow: 6px 0 15px rgba(31, 45, 61, 0.05);
+    overflow: hidden;
+
+    transition:
+        flex-basis 0.35s ease,
+        width 0.35s ease,
+        min-width 0.35s ease,
+        padding 0.35s ease,
+        opacity 0.25s ease,
+        box-shadow 0.35s ease;
+}
+
+
+/* SIDEBAR MỞ */
+
+.exercise-sidebar.sidebar-open {
+    flex-basis: 280px;
+    width: 280px;
+    min-width: 280px;
+    padding-left: 16px;
+    padding-right: 16px;
+    opacity: 1;
+}
+
+
+/* SIDEBAR ĐÓNG */
+
+.exercise-sidebar.sidebar-closed {
+    flex-basis: 0;
+    width: 0;
+    min-width: 0;
+    padding-left: 0;
+    padding-right: 0;
+    border-right: none;
+    box-shadow: none;
+    opacity: 0;
+}
+
+
+/* SIDEBAR INNER */
+
+.sidebar-inner {
+    width: 248px;
+    min-width: 248px;
+    opacity: 1;
+    transform: translateX(0);
+
+    transition:
+        opacity 0.2s ease,
+        transform 0.35s ease;
+}
+
+.exercise-sidebar.sidebar-closed .sidebar-inner {
+    opacity: 0;
+    transform: translateX(-18px);
+}
+
+
+/* SIDEBAR HEADER */
+
+.sidebar-header {
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 8px 20px;
+}
+
+.sidebar-title {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.sidebar-header h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 800;
+    color: #172033;
+}
+
+.sidebar-header span {
+    color: #64748b;
+    font-size: 13px;
+}
+
+
+/* SIDEBAR TOGGLE */
+
+.sidebar-toggle-button {
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 9px;
+    background: #ffffff;
+    color: #64748b;
+    cursor: pointer;
+
+    box-shadow:
+        4px 4px 9px rgba(163, 177, 198, 0.2),
+        -4px -4px 9px rgba(255, 255, 255, 0.9);
+
+    transition:
+        background 0.2s ease,
+        color 0.2s ease;
+}
+
+.sidebar-toggle-button:hover {
+    background: #eaf1ff;
+    color: #2563eb;
+}
+
+
+/* SIDEBAR OPEN BUTTON */
+
+.sidebar-open-button {
+    min-height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    padding: 0 16px;
+    border: none;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #2563eb;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+
+    box-shadow:
+        5px 5px 12px rgba(163, 177, 198, 0.2),
+        -5px -5px 12px rgba(255, 255, 255, 0.9);
+
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.sidebar-open-button:hover {
+    background: #eaf1ff;
+    color: #1d4ed8;
+
+    box-shadow:
+        5px 5px 12px rgba(163, 177, 198, 0.24),
+        -5px -5px 12px rgba(255, 255, 255, 0.95);
+}
+
+
+/* =========================================================
+   EXERCISE LIST
+   ========================================================= */
+
+.exercise-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 0 4px;
+}
+
+.exercise-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px;
+    border: none;
+    border-radius: 11px;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.exercise-item:hover {
+    background: #eaf1ff;
+}
+
+.exercise-item.active {
+    background: #e5edff;
+    box-shadow: inset 3px 0 0 #2563eb;
+}
+
+.exercise-number {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #ffffff;
+    color: #2563eb;
+    font-weight: 700;
+    box-shadow: 3px 3px 8px rgba(163, 177, 198, 0.2);
+}
+
+.exercise-item-content {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.exercise-item-title {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 14px;
+    font-weight: 600;
+    color: #172033;
+}
+
+
+/* =========================================================
+   MAIN
+   ========================================================= */
+
+.exercise-main {
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    padding: 28px 36px 50px;
+    overflow: hidden;
+}
+
+
+/* TOP BAR */
+
+.exercise-topbar {
+    width: 100%;
+    min-height: 46px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 30px;
+    position: relative;
+    z-index: 5;
+}
+
+
+/* BACK BUTTON */
+
+.exercise-back {
+    min-height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 20px;
+    border: none;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #2563eb;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+
+    box-shadow:
+        5px 5px 12px rgba(163, 177, 198, 0.2),
+        -5px -5px 12px rgba(255, 255, 255, 0.9);
+
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.exercise-back:hover {
+    color: #1d4ed8;
+    background: #eff6ff;
+
+    box-shadow:
+        5px 5px 12px rgba(163, 177, 198, 0.24),
+        -5px -5px 12px rgba(255, 255, 255, 0.95);
+}
+
+
+/* =========================================================
+   PRACTICE CODE MAIN
+   ========================================================= */
+
+.practice-code-main {
+    width: 100%;
+}
+
+
+/* =========================================================
+   TWO COLUMN - ĐỀ BÀI + CODE
+   ========================================================= */
+
+.exercise-layout {
+    width: 100%;
+    min-width: 0;
+    display: grid;
+
+    grid-template-columns:
+        minmax(320px, 0.9fr)
+        minmax(0, 1.1fr);
+
+    gap: 24px;
+    align-items: start;
+}
+
+
+/* =========================================================
+   PROBLEM PANEL
+   ========================================================= */
+
+.problem-panel {
+    min-width: 0;
+    padding: 26px;
+    background: #ffffff;
+    border-radius: 18px;
+
+    box-shadow:
+        8px 8px 20px rgba(163, 177, 198, 0.22),
+        -8px -8px 20px rgba(255, 255, 255, 0.95);
+
+    position: sticky;
+    top: 24px;
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+}
+
+.problem-panel::-webkit-scrollbar {
+    width: 6px;
+}
+
+.problem-panel::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+
+/* PROBLEM HEADER */
+
+.problem-header {
+    margin-bottom: 22px;
+}
+
+.problem-header h1 {
+    margin: 12px 0 0;
+    font-size: 30px;
+    line-height: 1.25;
+    color: #172033;
+}
+
+.problem-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+}
+
+.problem-language,
+.difficulty {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.problem-language {
+    background: #eef4ff;
+    color: #2563eb;
+}
+
+.difficulty {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.difficulty.easy {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.difficulty.medium {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.difficulty.hard {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+
+/* PROBLEM CONTENT */
+
+.problem-block {
+    margin-top: 22px;
+}
+
+.problem-block h2 {
+    margin: 0 0 10px;
+    font-size: 20px;
+    color: #172033;
+}
+
+.problem-block p {
+    margin: 0;
+    color: #475569;
+    font-size: 15px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+
+/* EXAMPLE */
+
+.example-box {
+    padding: 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 11px;
+    background: #f8fafc;
+}
+
+.example-box pre {
+    margin: 0;
+    white-space: pre-wrap;
+    overflow-x: auto;
+
+    font-family:
+        "JetBrains Mono",
+        "Fira Code",
+        Consolas,
+        monospace;
+
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+
+/* PUBLIC TEST CASE IN PROBLEM */
+
+.problem-testcase {
+    margin-top: 12px;
+    padding: 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 11px;
+    background: #f8fafc;
+}
+
+.testcase-title {
+    margin-bottom: 12px;
+    color: #334155;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.testcase-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.testcase-row strong {
+    display: block;
+    margin-bottom: 5px;
+    color: #64748b;
+    font-size: 12px;
+}
+
+.testcase-row pre {
+    min-height: 42px;
+    margin: 0;
+    padding: 10px;
+    border-radius: 8px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+
+    font-family:
+        "JetBrains Mono",
+        "Fira Code",
+        Consolas,
+        monospace;
+
+    font-size: 12px;
+    white-space: pre-wrap;
+    overflow-x: auto;
+}
+
+.no-testcase {
+    color: #94a3b8 !important;
+    font-style: italic;
+}
+
+
+/* =========================================================
+   CODE PANEL
+   ========================================================= */
+
+.code-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 18px;
+    width: 100%;
+    min-width: 0;
+}
+
+.code-card {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    border-radius: 18px;
+    background: #ffffff;
+
+    box-shadow:
+        8px 8px 20px rgba(163, 177, 198, 0.22),
+        -8px -8px 20px rgba(255, 255, 255, 0.95);
+}
+
+
+/* CODE HEADER */
+
+.code-header {
+    min-height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 18px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #ffffff;
+}
+
+.code-header > div {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.code-header svg {
+    color: #2563eb;
+}
+
+.code-header span {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.code-header > span {
+    padding: 5px 10px;
+    border-radius: 8px;
+    background: #eef4ff;
+    color: #2563eb;
+    font-size: 12px;
+}
+
+
+/* CODE EDITOR */
+
+.code-editor {
+    display: block;
+    width: 100%;
+    min-height: 500px;
+    padding: 22px;
+    border: none;
+    outline: none;
+    resize: vertical;
+    overflow: auto;
+    background: #111827;
+    color: #e5e7eb;
+
+    font-family:
+        "JetBrains Mono",
+        "Fira Code",
+        Consolas,
+        monospace;
+
+    font-size: 14px;
+    line-height: 1.65;
+    tab-size: 4;
+    caret-color: #ffffff;
+}
+
+.code-editor::selection {
+    background: #334155;
+}
+
+
+/* =========================================================
+   INPUT
+   ========================================================= */
+
+.input-section {
+    padding: 18px;
+    border-top: 1px solid #e5e7eb;
+    background: #ffffff;
+}
+
+.input-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.input-header h3 {
+    margin: 0;
+    font-size: 15px;
+}
+
+.input-header span {
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+.program-input {
+    width: 100%;
+    min-height: 100px;
+    padding: 12px;
+    border: 1px solid #dbe2ea;
+    border-radius: 10px;
+    outline: none;
+    background: #f8fafc;
+    color: #1e293b;
+
+    font-family:
+        "JetBrains Mono",
+        "Fira Code",
+        Consolas,
+        monospace;
+
+    font-size: 13px;
+    resize: vertical;
+}
+
+.program-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.input-help {
+    margin-top: 8px;
+    color: #64748b;
+    font-size: 12px;
+}
+
+
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+
+.code-actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 16px 18px;
+    border-top: 1px solid #e5e7eb;
+    background: #ffffff;
+}
+
+.code-actions button {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 0 16px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.code-actions button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.run-button {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.run-button:hover:not(:disabled) {
+    background: #1d4ed8;
+}
+
+.reset-button {
+    background: #eef2f7;
+    color: #475569;
+}
+
+.reset-button:hover:not(:disabled) {
+    background: #e2e8f0;
+}
+
+.submit-button {
+    background: #16a34a;
+    color: #ffffff;
+}
+
+.submit-button:hover:not(:disabled) {
+    background: #15803d;
+}
+
+.submit-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
+.submit-button:not(:disabled) {
+    cursor: pointer;
+}
+
+
+/* =========================================================
+   CONSOLE / OUTPUT
+   ========================================================= */
+
+.output-section {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    padding: 20px;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+}
+
+.output-section h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 14px;
+    color: #172033;
+    font-size: 18px;
+}
+
+.output-section pre {
+    display: block;
+    width: 100%;
+    min-height: 120px;
+    max-height: 350px;
+    margin: 0;
+    padding: 15px;
+    overflow: auto;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    border: 1px solid #263449;
+    border-radius: 10px;
+    background: #111827;
+    color: #e5e7eb;
+
+    font-family:
+        "JetBrains Mono",
+        "Fira Code",
+        Consolas,
+        monospace;
+
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+
+/* =========================================================
+   TEST CASES - DƯỚI CONSOLE
+   ========================================================= */
+
+.testcases-section {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    margin-top: 0;
+    padding: 20px;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+}
+
+.testcases-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.testcases-header h2 {
+    margin: 0;
+    color: #172033;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.testcases-header p {
+    margin: 5px 0 0;
+    color: #64748b;
+    font-size: 13px;
+}
+
+.testcases-overall,
+.hidden-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 9px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.testcases-overall.passed {
+    background: #dcfce7;
+    color: #166534;
+    border: none;
+    transform: none !important;
+}
+
+.testcases-overall.failed {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.hidden-badge {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.testcase-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+}
+
+.testcase-card {
+    width: 100%;
+    min-width: 0;
+    padding: 15px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #f8fafc;
+    box-sizing: border-box;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.testcase-card.has-result.status-passed {
+    border: 1px solid #86efac !important;
+    background: #f0fdf4 !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.testcase-card.has-result.status-wrong_answer,
+.testcase-card.has-result.status-time_limit_exceeded,
+.testcase-card.has-result.status-runtime_error,
+.testcase-card.has-result.status-compilation_error,
+.testcase-card.has-result.status-error {
+    border-color: #fca5a5;
+    background: #fff7f7;
+}
+
+.testcase-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    min-height: 24px;
+}
+
+.testcase-name {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    color: #172033;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.testcase-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.testcase-status.status-passed {
+    color: #15803d;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.testcase-status.status-passed svg,
+.testcase-status.status-passed i {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+.testcase-status.status-wrong_answer,
+.testcase-status.status-time_limit_exceeded,
+.testcase-status.status-runtime_error,
+.testcase-status.status-compilation_error,
+.testcase-status.status-error {
+    color: #dc2626;
+}
+
+.testcase-status.status-pending {
+    color: #64748b;
+}
+
+
+/* CHI TIẾT TEST CASE CÔNG KHAI */
+
+.testcase-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); /* Tự chia cột đều theo chiều ngang */
+    gap: 10px;
+    margin-top: 10px;
+}
+.testcase-details > div {
+    min-width: 0;
+}
+
+.testcase-details strong {
+    display: block;
+    margin-bottom: 4px;
+    color: #475569;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.testcase-details pre {
+    width: 100%;
+    min-height: 38px;
+    max-height: 120px;
+    margin: 0;
+    padding: 8px 10px;
+    overflow: auto;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #334155;
+    font-family: "JetBrains Mono", Consolas, monospace;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+
+/* TỔNG KẾT TEST CASE */
+
+.test-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 12px;
+    padding: 10px 14px;
+    border: 1px solid #86efac;
+    border-radius: 9px;
+    background: #f0fdf4;
+    color: #166534;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.test-summary p {
+    margin: 0;
+}
+.summary-success {
+    border-color: #86efac;
+    background: #f0fdf4;
+    color: #166534;
+}
+
+.summary-failed {
+    border-color: #fca5a5;
+    background: #fef2f2;
+    color: #991b1b;
+}
+
+
+/* =========================================================
+   PRACTICE PAGE
+   ========================================================= */
+
+.practice-page {
+    padding: 35px;
+}
+
+.practice-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.practice-header {
+    margin-bottom: 30px;
+}
+
+.practice-header h1 {
+    margin: 0 0 8px;
+    font-size: 32px;
+    color: #172033;
+}
+
+.practice-header p {
+    margin: 0;
+    color: #64748b;
+    font-size: 15px;
+}
+
+.practice-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.practice-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 18px;
+    margin-bottom: 24px;
+    background: #ffffff;
+    border-radius: 16px;
+
+    box-shadow:
+        7px 7px 18px rgba(163, 177, 198, 0.22),
+        -7px -7px 18px rgba(255, 255, 255, 0.9);
+}
+
+.practice-filter select,
+.practice-filter input {
+    height: 42px;
+    padding: 0 13px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    outline: none;
+    background: #f8fafc;
+    color: #334155;
+    font-size: 14px;
+}
+
+.practice-filter input {
+    min-width: 240px;
+}
+
+.practice-card {
+    padding: 22px;
+    background: #ffffff;
+    border-radius: 16px;
+
+    box-shadow:
+        7px 7px 18px rgba(163, 177, 198, 0.22),
+        -7px -7px 18px rgba(255, 255, 255, 0.9);
+}
+
+.practice-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.practice-card h2 {
+    margin: 0;
+    font-size: 19px;
+    color: #172033;
+}
+
+.practice-card-description {
+    min-height: 50px;
+    margin: 0 0 18px;
+    color: #64748b;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.practice-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-bottom: 18px;
+}
+
+.practice-card-meta span {
+    padding: 5px 9px;
+    border-radius: 7px;
+    background: #eef4ff;
+    color: #2563eb;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.practice-card-button {
+    width: 100%;
+    height: 40px;
+    border: none;
+    border-radius: 10px;
+    background: #2563eb;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.practice-card-button:hover {
+    background: #1d4ed8;
+}
+
+
+/* =========================================================
+   LOADING / ERROR / EMPTY
+   ========================================================= */
+
+.exercise-loading,
+.exercise-error,
+.exercise-empty {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 30px;
+    text-align: center;
+    font-size: 16px;
+}
+
+.exercise-loading svg {
+    color: #2563eb;
+    font-size: 30px;
+}
+
+.exercise-error {
+    color: #dc2626;
+}
+
+.exercise-error svg {
+    font-size: 30px;
+}
+
+.exercise-empty h2 {
+    margin: 0;
+}
+
+.exercise-empty p {
+    margin: 0;
+    color: #64748b;
+}
+
+
+/* =========================================================
+   RESPONSIVE 1100
+   ========================================================= */
+
+@media (max-width: 1100px) {
+    .exercise-sidebar {
+        flex-basis: 240px;
+        width: 240px;
+        min-width: 240px;
+    }
+
+    .exercise-sidebar.sidebar-open {
+        flex-basis: 240px;
+        width: 240px;
+        min-width: 240px;
+    }
+
+    .exercise-sidebar.sidebar-closed {
+        flex-basis: 0;
+        width: 0;
+        min-width: 0;
+    }
+
+    .sidebar-inner {
+        width: 208px;
+        min-width: 208px;
+    }
+
+    .exercise-main {
+        padding-left: 24px;
+        padding-right: 24px;
+    }
+
+    .exercise-layout {
+        grid-template-columns:
+            minmax(280px, 0.85fr)
+            minmax(0, 1.15fr);
+    }
+}
+
+
+/* =========================================================
+   RESPONSIVE 900
+   ========================================================= */
+
+@media (max-width: 900px) {
+    .exercise-sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        z-index: 1000;
+        height: 100vh;
+        flex-basis: 280px;
+        width: 280px;
+        min-width: 280px;
+        padding: 24px 16px;
+        overflow-y: auto;
+
+        box-shadow:
+            8px 0 25px rgba(15, 23, 42, 0.12);
+    }
+
+    .exercise-sidebar.sidebar-open {
+        flex-basis: 280px;
+        width: 280px;
+        min-width: 280px;
+        opacity: 1;
+    }
+
+    .exercise-sidebar.sidebar-closed {
+        flex-basis: 0;
+        width: 0;
+        min-width: 0;
+        padding-left: 0;
+        padding-right: 0;
+        opacity: 0;
+        box-shadow: none;
+    }
+
+    .sidebar-inner {
+        width: 248px;
+        min-width: 248px;
+    }
+
+    .exercise-main {
+        width: 100%;
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+    .exercise-layout {
+        grid-template-columns:
+            minmax(300px, 0.9fr)
+            minmax(0, 1.1fr);
+    }
+}
+
+
+/* =========================================================
+   RESPONSIVE 700
+   ========================================================= */
+
+@media (max-width: 700px) {
+    .exercise-main {
+        padding: 18px 14px 30px;
+    }
+
+    .exercise-topbar {
+        margin-bottom: 22px;
+        gap: 8px;
+    }
+
+    .exercise-back,
+    .sidebar-open-button {
+        min-height: 42px;
+        padding: 0 14px;
+        font-size: 13px;
+    }
+
+    .exercise-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .problem-panel {
+        position: static;
+        max-height: none;
+    }
+
+    .code-editor {
+        min-height: 350px;
+    }
+
+    .output-section,
+    .testcases-section {
+        padding: 15px;
+    }
+
+    .testcase-details {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .testcase-card-header {
+        align-items: flex-start;
+    }
+}
+
+
+/* =========================================================
+   RESPONSIVE 650
+   ========================================================= */
+
+@media (max-width: 650px) {
+    .practice-page {
+        padding: 18px 14px 35px;
+    }
+
+    .exercise-main {
+        padding: 16px 12px 30px;
+    }
+
+    .problem-panel {
+        padding: 20px;
+    }
+
+    .problem-header h1 {
+        font-size: 24px;
+    }
+
+    .code-editor {
+        min-height: 380px;
+        padding: 16px;
+        font-size: 13px;
+    }
+
+    .testcase-row {
+        grid-template-columns: 1fr;
+    }
+
+    .code-actions {
+        flex-wrap: wrap;
+    }
+
+    .code-actions button {
+        flex: 1;
+        min-width: 110px;
+    }
+
+    .practice-list {
+        grid-template-columns: 1fr;
+    }
+
+    .practice-filter input {
+        width: 100%;
+        min-width: 0;
+    }
+}
+
+
+/* =========================================================
+   RESPONSIVE 480
+   ========================================================= */
+
+@media (max-width: 480px) {
+    .exercise-sidebar,
+    .exercise-sidebar.sidebar-open {
+        flex-basis: 270px;
+        width: 270px;
+        min-width: 270px;
+    }
+
+    .exercise-sidebar.sidebar-closed {
+        flex-basis: 0;
+        width: 0;
+        min-width: 0;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .sidebar-inner {
+        width: 238px;
+        min-width: 238px;
+    }
+
+    .exercise-topbar {
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .exercise-back,
+    .sidebar-open-button {
+        min-height: 40px;
+        padding: 0 12px;
+        font-size: 12px;
+    }
+
+    .problem-panel {
+        padding: 16px;
+    }
+
+    .problem-header h1 {
+        font-size: 22px;
+    }
+
+    .problem-block h2 {
+        font-size: 18px;
+    }
+
+    .code-header {
+        min-height: 52px;
+        padding: 0 12px;
+    }
+
+    .code-header > span {
+        padding: 4px 7px;
+        font-size: 11px;
+    }
+
+    .input-section {
+        padding: 14px;
+    }
+
+    .code-actions {
+        padding: 12px;
+    }
+
+    .code-actions button {
+        min-width: 90px;
+        padding: 0 12px;
+        font-size: 13px;
+    }
+
+    .output-section {
+        padding: 15px;
+    }
+}
+
+
+/* =========================================================
+   TẮT HIỆU ỨNG CHUYỂN ĐỘNG CỦA KHU VỰC CODE
+   ========================================================= */
+
+.code-panel,
+.code-card,
+.code-header,
+.code-editor,
+.input-section,
+.input-header,
+.program-input,
+.code-actions,
+.output-section {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+}

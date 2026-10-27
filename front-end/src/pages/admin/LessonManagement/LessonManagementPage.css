@@ -1,0 +1,720 @@
+/* ==========================================================================
+   1. RESET & CONTAINER
+   ========================================================================== */
+.lm-container {
+    padding: 24px 16px;
+    max-width: 100%;
+    margin: 0 auto;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    color: #1e293b;
+    box-sizing: border-box;
+}
+
+.lm-container *,
+.lm-container *::before,
+.lm-container *::after {
+    box-sizing: inherit;
+}
+
+/* ==========================================================================
+   2. HEADER & TOOLBAR
+   ========================================================================== */
+.lm-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.lm-eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #6366f1;
+    text-transform: uppercase;
+}
+
+.lm-title {
+    font-size: 24px;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 4px 0;
+}
+
+.lm-subtitle {
+    font-size: 13px;
+    color: #64748b;
+    margin: 0;
+}
+
+.lm-header__actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* ==========================================================================
+   3. ALERTS
+   ========================================================================== */
+.lm-alert {
+    padding: 10px 14px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+}
+.lm-alert--error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+.lm-alert--success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+.lm-alert button { background: transparent; border: none; cursor: pointer; color: inherit; }
+
+/* ==========================================================================
+   4. PANEL & TABLE (TỐI ƯU VỪA MÀN HÌNH)
+   ========================================================================== */
+.lm-panel {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.lm-toolbar {
+    padding: 14px 18px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.lm-search-form {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.lm-search-input {
+    position: relative;
+    flex: 1;
+    max-width: 360px;
+}
+
+.lm-search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+.lm-search-input input {
+    width: 100%;
+    padding: 8px 12px 8px 36px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 13px;
+    outline: none;
+    background: #f8fafc;
+}
+
+.lm-search-input input:focus {
+    background: #ffffff;
+    border-color: #6366f1;
+}
+
+/* Tối ưu hóa bảng để tự động ôm vừa khung hình */
+.lm-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.lm-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 13px;
+    table-layout: auto; /* Tự điều chỉnh tỉ lệ cột */
+}
+
+.lm-table th {
+    background: #f8fafc;
+    padding: 12px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+}
+
+.lm-table td {
+    padding: 12px 10px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+
+/* 1. Cột STT */
+.lm-table th:nth-child(1),
+.lm-table td:nth-child(1) {
+    width: 45px;
+    text-align: center;
+}
+
+/* 2. Cột TÊN BÀI HỌC (Cho phép xuống dòng hợp lý) */
+.lm-table td:nth-child(2) {
+    white-space: normal; /* Cho phép rớt dòng để không đẩy rộng bảng */
+    word-break: break-word;
+    min-width: 220px;
+    line-height: 1.4;
+}
+
+/* 3. Cột THỨ TỰ */
+.lm-table th:nth-child(3),
+.lm-table td:nth-child(3) {
+    width: 70px;
+    text-align: center;
+}
+
+/* 4. Cột COURSE ID */
+.lm-table th:nth-child(4),
+.lm-table td:nth-child(4) {
+    width: 180px;
+}
+
+/* 5. Cột TRẠNG THÁI */
+.lm-table th:nth-child(5),
+.lm-table td:nth-child(5) {
+    width: 110px;
+    text-align: center;
+}
+
+/* Badges & Tags */
+.lm-badge {
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+    font-size: 12px;
+    background: #f1f5f9;
+    color: #475569;
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.lm-status-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    display: inline-block;
+    white-space: nowrap;
+    text-align: center;
+    min-width: 85px;
+}
+.lm-status-badge.published { background: #dcfce7; color: #166534; }
+.lm-status-badge.draft { background: #fef3c7; color: #92400e; }
+
+/* ==========================================================================
+   5. NÚT THAO TÁC (TỐI ƯU GỌN GÀNG KHÔNG BỊ TRÀN)
+   ========================================================================== */
+.lm-actions {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.lm-btn-action {
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+}
+
+.lm-btn-action--edit { background: #f1f5f9; color: #475569; }
+.lm-btn-action--edit:hover { background: #e2e8f0; color: #1e293b; }
+
+.lm-btn-action--exercise { background: #eef2ff; color: #4f46e5; }
+.lm-btn-action--exercise:hover { background: #e0e7ff; color: #4338ca; }
+
+.lm-btn-action--hide { background: #fff7ed; color: #c2410c; min-width: 65px; }
+.lm-btn-action--hide:hover { background: #ffedd5; }
+
+.lm-btn-action--show { background: #f0fdf4; color: #15803d; min-width: 65px; }
+.lm-btn-action--show:hover { background: #dcfce7; }
+
+.lm-btn {
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+.lm-btn--primary { background: #6366f1; color: white; }
+.lm-btn--outline { border-color: #cbd5e1; background: white; color: #334155; }
+.lm-btn--ghost { background: transparent; color: #64748b; }
+.lm-btn--sm { padding: 5px 10px; font-size: 12px; }
+
+/* ==========================================================================
+   6. PAGINATION
+   ========================================================================== */
+.lm-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 18px;
+    border-top: 1px solid #f1f5f9;
+}
+
+/* ==========================================================================
+   7. MODAL STYLES
+   ========================================================================== */
+.lm-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(3px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 16px;
+}
+
+.lm-modal {
+    background: #ffffff;
+    border-radius: 14px;
+    width: 100%;
+    max-width: 540px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+}
+
+.lm-modal--lg { max-width: 760px; }
+
+.lm-modal__header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.lm-modal__header h3 { margin: 0; font-size: 16px; font-weight: 700; }
+.lm-modal__close { background: transparent; border: none; font-size: 16px; cursor: pointer; color: #94a3b8; }
+.lm-modal__body { padding: 20px; }
+.lm-modal__footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; padding-top: 14px; border-top: 1px solid #f1f5f9; }
+
+.lm-form-group { display: flex; flex-direction: column; margin-bottom: 14px; }
+.lm-form-group label { font-size: 12px; font-weight: 600; margin-bottom: 4px; color: #334155; }
+.lm-form-group input, .lm-form-group select, .lm-form-group textarea {
+    padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; outline: none;
+}
+.lm-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.lm-exercise-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    margin-bottom: 8px;
+}
+
+.lm-icon-btn {
+    background: transparent;
+    border: none;
+    font-size: 13px;
+    color: #64748b;
+    cursor: pointer;
+    padding: 5px 8px;
+    border-radius: 6px;
+}
+.lm-icon-btn:hover { background: #e2e8f0; color: #0f172a; }
+.lm-icon-btn--danger:hover { background: #fef2f2; color: #ef4444; }
+
+/* Tên khóa học hiển thị gọn gàng */
+.lm-course-name {
+    font-weight: 600;
+    color: #4f46e5;
+    background: #eef2ff;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    display: inline-block;
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+}
+
+
+/* =========================================================
+   LESSON MODAL - POPUP THÊM / SỬA BÀI HỌC
+   ========================================================= */
+
+/* Lớp phủ */
+.lm-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    overflow-y: auto;
+    background: rgba(15, 23, 42, 0.58);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+}
+
+/* Khung popup */
+.lm-modal-backdrop > .lm-modal:not(.lm-modal--lg) {
+    width: 100%;
+    max-width: 680px;
+    max-height: calc(100vh - 48px);
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    border-radius: 18px;
+    box-shadow:
+        0 24px 60px rgba(15, 23, 42, 0.2),
+        0 8px 20px rgba(15, 23, 42, 0.08);
+    animation: lm-modal-enter 0.22s ease-out;
+}
+
+/* Hiệu ứng mở popup */
+@keyframes lm-modal-enter {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.985);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Tiêu đề popup */
+.lm-modal__header {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 22px 26px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8faff 100%);
+    border-bottom: 1px solid #e9edf5;
+}
+
+.lm-modal__header h3 {
+    margin: 0;
+    color: #172033;
+    font-size: 19px;
+    font-weight: 750;
+    line-height: 1.4;
+    letter-spacing: -0.4px;
+}
+
+/* Nút đóng */
+.lm-modal__close {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #fff;
+    color: #64748b;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.lm-modal__close:hover {
+    color: #dc2626;
+    background: #fef2f2;
+    border-color: #fecaca;
+    transform: rotate(90deg);
+}
+
+/* Phần form có thể cuộn */
+.lm-modal form.lm-modal__body {
+    min-height: 0;
+    overflow-y: auto;
+    padding: 24px 26px 20px;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+
+/* Thanh cuộn trên Chrome / Edge */
+.lm-modal form.lm-modal__body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.lm-modal form.lm-modal__body::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+/* Nhóm trường nhập */
+.lm-modal .lm-form-group {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    margin-bottom: 19px;
+}
+
+.lm-modal .lm-form-group label {
+    margin-bottom: 8px;
+    color: #334155;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.lm-modal .lm-form-group label::first-letter {
+    color: inherit;
+}
+
+/* Input, select, textarea */
+.lm-modal .lm-form-group input,
+.lm-modal .lm-form-group select,
+.lm-modal .lm-form-group textarea {
+    width: 100%;
+    min-width: 0;
+    padding: 11px 13px;
+    border: 1px solid #d8dfeb;
+    border-radius: 10px;
+    outline: none;
+    background: #f9fafc;
+    color: #1e293b;
+    font-family: inherit;
+    font-size: 13px;
+    line-height: 1.5;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+}
+
+.lm-modal .lm-form-group input,
+.lm-modal .lm-form-group select {
+    min-height: 43px;
+}
+
+.lm-modal .lm-form-group textarea {
+    min-height: 90px;
+    resize: vertical;
+}
+
+/* Placeholder */
+.lm-modal .lm-form-group input::placeholder,
+.lm-modal .lm-form-group textarea::placeholder {
+    color: #94a3b8;
+}
+
+/* Focus */
+.lm-modal .lm-form-group input:focus,
+.lm-modal .lm-form-group select:focus,
+.lm-modal .lm-form-group textarea:focus {
+    background: #fff;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+/* Trạng thái disabled */
+.lm-modal .lm-form-group input:disabled,
+.lm-modal .lm-form-group select:disabled {
+    color: #64748b;
+    background: #f1f5f9;
+    cursor: not-allowed;
+}
+
+/* Hai cột: khóa học và thứ tự */
+.lm-modal .lm-form-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 16px;
+    align-items: start;
+}
+
+.lm-modal .lm-form-row .lm-form-group {
+    margin-bottom: 19px;
+}
+
+/* Khu vực nút hành động */
+.lm-modal .lm-modal__footer {
+    position: sticky;
+    bottom: -20px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+    margin: 8px 0 0;
+    padding: 16px 0 0;
+    background: #fff;
+    border-top: 1px solid #e9edf5;
+}
+
+/* Nút chung */
+.lm-modal .lm-modal__footer .lm-btn {
+    min-height: 40px;
+    padding: 10px 17px;
+    border-radius: 9px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+/* Nút hủy */
+.lm-modal .lm-modal__footer .lm-btn--ghost {
+    color: #475569;
+    background: #fff;
+    border: 1px solid #d8dfeb;
+}
+
+.lm-modal .lm-modal__footer .lm-btn--ghost:hover {
+    color: #1e293b;
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+/* Nút lưu */
+.lm-modal .lm-modal__footer .lm-btn--primary {
+    color: #fff;
+    background: #4f46e5;
+    border: 1px solid #4f46e5;
+    box-shadow: 0 3px 8px rgba(79, 70, 229, 0.18);
+}
+
+.lm-modal .lm-modal__footer .lm-btn--primary:hover:not(:disabled) {
+    background: #4338ca;
+    border-color: #4338ca;
+    box-shadow: 0 5px 12px rgba(79, 70, 229, 0.25);
+    transform: translateY(-1px);
+}
+
+.lm-modal .lm-modal__footer .lm-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* Responsive tablet và mobile */
+@media (max-width: 640px) {
+    .lm-modal-backdrop {
+        align-items: center;
+        padding: 12px;
+    }
+
+    .lm-modal-backdrop > .lm-modal:not(.lm-modal--lg) {
+        max-height: calc(100dvh - 24px);
+        border-radius: 14px;
+    }
+
+    .lm-modal__header {
+        padding: 17px 18px;
+    }
+
+    .lm-modal__header h3 {
+        font-size: 17px;
+    }
+
+    .lm-modal form.lm-modal__body {
+        padding: 19px 18px;
+    }
+
+    .lm-modal .lm-form-row {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0;
+    }
+
+    .lm-modal .lm-form-group {
+        margin-bottom: 16px;
+    }
+
+    .lm-modal .lm-modal__footer {
+        bottom: -19px;
+        gap: 8px;
+    }
+
+    .lm-modal .lm-modal__footer .lm-btn {
+        flex: 1;
+    }
+}
+
+/* Tôn trọng thiết lập giảm chuyển động */
+@media (prefers-reduced-motion: reduce) {
+    .lm-modal-backdrop > .lm-modal:not(.lm-modal--lg),
+    .lm-modal__close,
+    .lm-modal .lm-form-group input,
+    .lm-modal .lm-form-group select,
+    .lm-modal .lm-form-group textarea,
+    .lm-modal .lm-modal__footer .lm-btn {
+        animation: none;
+        transition: none;
+    }
+}
+/* LessonManagementPage.css — notification overlay fix
+   Add this block to the existing stylesheet or import this file after it. */
+.lm-alert {
+    position: fixed;
+    top: 88px;
+    right: 24px;
+    z-index: 2000;
+    width: min(440px, calc(100vw - 32px));
+    margin: 0;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, .16);
+    animation: lmToastIn .2s ease-out, lmToastAutoHide 4s ease 2.5s forwards;
+}
+
+.lm-alert + .lm-alert { top: 152px; }
+
+@keyframes lmToastIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 600px) {
+    .lm-alert {
+        top: 76px;
+        right: 12px;
+        width: calc(100vw - 24px);
+    }
+    .lm-alert + .lm-alert { top: 140px; }
+}
+
+
+/* Tự ẩn thông báo sau khoảng 6,5 giây */
+@keyframes lmToastAutoHide {
+    0%, 82% { opacity: 1; visibility: visible; }
+    100% { opacity: 0; visibility: hidden; pointer-events: none; }
+}

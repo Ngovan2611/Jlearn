@@ -1,0 +1,48 @@
+.stats {
+    display: flex;
+    align-items: center;
+
+    gap: 35px;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-item strong {
+    display: block;
+
+    color: var(--home-blue);
+
+    font-size: 25px;
+    font-weight: 800;
+}
+
+.stat-item span {
+    display: block;
+
+    margin-top: 4px;
+
+    color: var(--home-text-muted);
+
+    font-size: 12px;
+}
+
+.stat-divider {
+    width: 1px;
+    height: 35px;
+
+    background: #d5dde8;
+}
+
+@media (max-width: 500px) {
+    .stats {
+        width: 100%;
+        justify-content: center;
+        gap: 20px;
+    }
+
+    .stat-item strong {
+        font-size: 21px;
+    }
+}
