@@ -1,0 +1,1143 @@
+/*
+ * UserManagementPage.css
+ * Giao diện quản lý người dùng đồng bộ với layout Lesson Management.
+ */
+
+/* =========================================================
+   1. LAYOUT TỔNG THỂ & BIẾN MÀU
+   ========================================================= */
+:root {
+    --um-primary: #6366f1;
+    --um-primary-hover: #4f46e5;
+    --um-bg: #f8fafc;
+    --um-surface: #ffffff;
+    --um-text: #1e293b;
+    --um-muted: #64748b;
+    --um-border: #e2e8f0;
+    --um-success-bg: #dcfce7;
+    --um-success-text: #166534;
+    --um-danger-bg: #fef2f2;
+    --um-danger-text: #b91c1c;
+}
+
+.um-container {
+    width: 100%;
+    max-width: 100%;
+    min-height: 100vh;
+    margin: 0 auto;
+    padding: 24px 16px;
+    box-sizing: border-box;
+    color: var(--um-text);
+    background: var(--um-bg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.um-container *,
+.um-container *::before,
+.um-container *::after {
+    box-sizing: inherit;
+}
+
+/* =========================================================
+   2. HEADER
+   ========================================================= */
+.um-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.um-eyebrow {
+    color: var(--um-primary);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.um-title {
+    margin: 4px 0;
+    color: #0f172a;
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1.3;
+}
+
+.um-subtitle {
+    margin: 0;
+    color: var(--um-muted);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+/* =========================================================
+   3. STAT CARDS
+   ========================================================= */
+.um-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.um-stat-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    min-width: 0;
+    padding: 18px;
+    background: var(--um-surface);
+    border: 1px solid var(--um-border);
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.um-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 14px rgba(15, 23, 42, 0.07);
+}
+
+.um-stat-card__label {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--um-muted);
+    font-size: 13px;
+}
+
+.um-stat-card__value {
+    color: #0f172a;
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1.25;
+}
+
+.um-stat-card__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border-radius: 11px;
+    font-size: 19px;
+}
+
+.um-stat--blue { background: #eff6ff; color: #2563eb; }
+.um-stat--green { background: #f0fdf4; color: #16a34a; }
+.um-stat--red { background: #fef2f2; color: #dc2626; }
+
+/* =========================================================
+   4. PANEL & SEARCH TOOLBAR
+   ========================================================= */
+.um-panel {
+    overflow: hidden;
+    background: var(--um-surface);
+    border: 1px solid var(--um-border);
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+}
+
+.um-toolbar {
+    padding: 14px 18px;
+    background: #ffffff;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.um-search-form {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.um-search-input {
+    position: relative;
+    flex: 1;
+    min-width: 220px;
+    max-width: 420px;
+}
+
+.um-search-icon {
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    color: #94a3b8;
+    font-size: 13px;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.um-search-input input {
+    width: 100%;
+    min-height: 38px;
+    padding: 8px 12px 8px 36px;
+    color: var(--um-text);
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    outline: none;
+    font: inherit;
+    font-size: 13px;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.um-search-input input:focus {
+    background: #ffffff;
+    border-color: var(--um-primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+/* =========================================================
+   5. TABLE
+   ========================================================= */
+.um-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.um-table {
+    width: 100%;
+    min-width: 760px;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 13px;
+}
+
+.um-table th {
+    padding: 12px 14px;
+    color: #475569;
+    background: #f8fafc;
+    border-bottom: 1px solid var(--um-border);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.um-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+
+.um-table__actions-head,
+.um-table td:last-child {
+    min-width: 260px;
+    white-space: nowrap;
+    text-align: center;
+}
+
+/* Canh tiêu đề THAO TÁC cùng trục với nhóm nút bên dưới */
+.um-table th.um-table__actions-head {
+    text-align: center;
+}
+
+.um-table tbody tr {
+    transition: background 0.15s ease;
+}
+
+.um-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+.um-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.um-user-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.um-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    color: #ffffff;
+    background: linear-gradient(135deg, #818cf8, #4f46e5);
+    border-radius: 50%;
+    box-shadow: 0 2px 5px rgba(79, 70, 229, 0.18);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.um-username {
+    color: #1e293b;
+    font-weight: 650;
+    overflow-wrap: anywhere;
+}
+
+.um-code {
+    display: inline-block;
+    max-width: 220px;
+    padding: 3px 7px;
+    color: #475569;
+    background: #f1f5f9;
+    border: 1px solid var(--um-border);
+    border-radius: 6px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 11px;
+    overflow-wrap: anywhere;
+}
+
+.um-table__empty {
+    padding: 42px 20px !important;
+    text-align: center;
+}
+
+.um-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    color: var(--um-muted);
+}
+
+.um-empty-icon {
+    margin-bottom: 4px;
+    color: #cbd5e1;
+    font-size: 30px;
+}
+
+/* =========================================================
+   6. STATUS BADGES
+   ========================================================= */
+.um-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.4;
+    white-space: nowrap;
+}
+
+.um-badge__dot {
+    width: 6px;
+    height: 6px;
+    flex-shrink: 0;
+    border-radius: 50%;
+}
+
+.um-badge--active {
+    color: var(--um-success-text);
+    background: var(--um-success-bg);
+}
+
+.um-badge--active .um-badge__dot { background: #16a34a; }
+
+.um-badge--locked {
+    color: var(--um-danger-text);
+    background: #fee2e2;
+}
+
+.um-badge--locked .um-badge__dot { background: #dc2626; }
+
+/* =========================================================
+   7. BUTTONS & ACTIONS
+   ========================================================= */
+.um-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: nowrap;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+/* Nút Khóa/Mở khóa có cùng kích thước, không xuống dòng hoặc làm giãn hàng */
+.um-btn-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    min-width: 88px;
+    min-height: 32px;
+    gap: 5px;
+    padding: 6px 8px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 11px;
+    line-height: 1.2;
+    font-weight: 650;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.um-btn-action svg {
+    flex: 0 0 auto;
+    width: 11px;
+    height: 11px;
+}
+
+.um-btn-action--view {
+    color: #475569;
+    background: #f1f5f9;
+}
+.um-btn-action--view:hover { color: #1e293b; background: #e2e8f0; }
+
+.um-btn-action--lock {
+    color: #c2410c;
+    background: #fff7ed;
+}
+.um-btn-action--lock:hover { background: #ffedd5; }
+
+.um-btn-action--unlock {
+    color: #15803d;
+    background: #f0fdf4;
+}
+.um-btn-action--unlock:hover { background: #dcfce7; }
+
+.um-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 8px 14px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 650;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
+}
+
+.um-btn__icon { font-size: 12px; }
+
+.um-btn--primary {
+    color: #ffffff;
+    background: var(--um-primary);
+}
+.um-btn--primary:hover:not(:disabled) { background: var(--um-primary-hover); }
+
+.um-btn--outline {
+    color: #334155;
+    background: #ffffff;
+    border-color: #cbd5e1;
+}
+.um-btn--outline:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+}
+
+.um-btn--ghost {
+    color: #64748b;
+    background: transparent;
+}
+.um-btn--ghost:hover {
+    color: #1e293b;
+    background: #f1f5f9;
+}
+
+.um-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* =========================================================
+   8. ALERTS
+   ========================================================= */
+.um-alert {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding: 10px 14px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+.um-alert--error {
+    color: #991b1b;
+    background: #fef2f2;
+    border-color: #fecaca;
+}
+
+.um-alert--success {
+    color: #166534;
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+}
+
+.um-alert button {
+    flex-shrink: 0;
+    padding: 2px 5px;
+    color: inherit;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+/* =========================================================
+   9. PAGINATION
+   ========================================================= */
+.um-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px 18px;
+    background: #ffffff;
+    border-top: 1px solid #f1f5f9;
+}
+
+.um-pagination__info {
+    color: var(--um-muted);
+    font-size: 12px;
+}
+
+.um-pagination__btns {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* =========================================================
+   10. MODAL - CÙNG PHONG CÁCH LESSON MANAGEMENT
+   ========================================================= */
+.um-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    overflow-y: auto;
+    background: rgba(15, 23, 42, 0.58);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    animation: um-fade-in 0.2s ease-out;
+}
+
+.um-modal {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 540px;
+    max-height: calc(100vh - 32px);
+    margin: auto;
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.2);
+    animation: um-slide-up 0.22s ease-out;
+}
+
+.um-modal__header {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    gap: 12px;
+    padding: 16px 20px;
+    background: #ffffff;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.um-modal__header h3 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 16px;
+    font-weight: 750;
+    line-height: 1.45;
+}
+
+.um-modal__close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    padding: 0;
+    color: #64748b;
+    background: transparent;
+    border: none;
+    border-radius: 7px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.um-modal__close:hover {
+    color: #dc2626;
+    background: #fef2f2;
+}
+
+/* Body: giữ header và footer, chỉ cuộn phần nội dung */
+.um-modal__body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 20px;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+
+.um-modal__body::-webkit-scrollbar { width: 6px; }
+.um-modal__body::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+/* Nếu body chỉ chứa profile */
+.um-profile-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.um-profile-card__header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.um-profile-avatar-wrapper {
+    width: 76px;
+    height: 76px;
+    overflow: hidden;
+    flex-shrink: 0;
+    margin-bottom: 12px;
+    background: #f1f5f9;
+    border: 3px solid #e0e7ff;
+    border-radius: 50%;
+    box-shadow: 0 3px 10px rgba(79, 70, 229, 0.12);
+}
+
+.um-profile-avatar-img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.um-profile-avatar-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    color: #ffffff;
+    background: linear-gradient(135deg, #818cf8, #4f46e5);
+    font-size: 29px;
+    font-weight: 750;
+}
+
+.um-profile-fullname {
+    margin: 0 0 5px;
+    color: #0f172a;
+    font-size: 20px;
+    font-weight: 750;
+    overflow-wrap: anywhere;
+}
+
+.um-profile-id-badge {
+    display: inline-block;
+    max-width: 100%;
+    padding: 4px 9px;
+    color: #64748b;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+    overflow-wrap: anywhere;
+}
+
+.um-profile-details-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
+.um-profile-detail-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    padding: 11px 13px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 9px;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.um-profile-detail-item:hover {
+    background: #f5f7ff;
+    border-color: #c7d2fe;
+}
+
+.um-profile-detail-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    color: #4f46e5;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.um-profile-detail-content {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+    gap: 3px;
+    overflow-wrap: anywhere;
+}
+
+.um-profile-detail-content label {
+    margin: 0;
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.um-profile-detail-content strong {
+    color: #1e293b;
+    font-size: 13px;
+    font-weight: 650;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+/* Hỗ trợ form nếu popup có input/select/textarea */
+.um-modal .um-form-group {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    margin-bottom: 16px;
+}
+
+.um-modal .um-form-group label {
+    margin-bottom: 6px;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.um-modal .um-form-group input,
+.um-modal .um-form-group select,
+.um-modal .um-form-group textarea {
+    width: 100%;
+    min-width: 0;
+    padding: 9px 11px;
+    color: #1e293b;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    outline: none;
+    font: inherit;
+    font-size: 13px;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.um-modal .um-form-group input,
+.um-modal .um-form-group select {
+    min-height: 39px;
+}
+
+.um-modal .um-form-group textarea {
+    min-height: 82px;
+    resize: vertical;
+}
+
+.um-modal .um-form-group input:focus,
+.um-modal .um-form-group select:focus,
+.um-modal .um-form-group textarea:focus {
+    background: #ffffff;
+    border-color: var(--um-primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+.um-modal .um-form-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+/* Nếu JSX có footer tương tự popup bài học */
+.um-modal__footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+    padding-top: 14px;
+    background: #ffffff;
+    border-top: 1px solid #f1f5f9;
+}
+
+.um-modal__footer .um-btn {
+    min-height: 36px;
+    padding: 8px 13px;
+    font-size: 12px;
+}
+
+/* =========================================================
+   11. RESPONSIVE
+   ========================================================= */
+@media (max-width: 768px) {
+    .um-container { padding: 16px; }
+
+    .um-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .um-header > .um-btn { align-self: flex-start; }
+
+    .um-search-form {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .um-search-input {
+        width: 100%;
+        min-width: 0;
+        max-width: none;
+    }
+
+    .um-search-form > .um-btn { width: 100%; }
+
+    .um-pagination {
+        align-items: center;
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .um-pagination__btns {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 480px) {
+    .um-container { padding: 12px; }
+
+    .um-title { font-size: 21px; }
+
+    .um-stats-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 10px;
+    }
+
+    .um-stat-card { padding: 14px; }
+    .um-stat-card__value { font-size: 21px; }
+
+    .um-modal-backdrop { padding: 10px; }
+
+    .um-modal {
+        max-height: calc(100dvh - 20px);
+        border-radius: 12px;
+    }
+
+    .um-modal__header { padding: 14px 16px; }
+    .um-modal__header h3 { font-size: 15px; }
+    .um-modal__body { padding: 16px; }
+
+    .um-modal .um-form-row {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0;
+    }
+
+    .um-profile-avatar-wrapper {
+        width: 66px;
+        height: 66px;
+    }
+
+    .um-profile-fullname { font-size: 18px; }
+
+    .um-profile-detail-item {
+        gap: 10px;
+        padding: 10px;
+    }
+
+    .um-profile-detail-icon {
+        width: 33px;
+        height: 33px;
+    }
+
+    .um-modal__footer {
+        align-items: stretch;
+    }
+
+    .um-modal__footer .um-btn { flex: 1; }
+}
+
+@keyframes um-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes um-slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .um-modal-backdrop,
+    .um-modal,
+    .um-stat-card,
+    .um-modal__close,
+    .um-profile-detail-item {
+        animation: none;
+        transition: none;
+    }
+}
+
+/* =========================================================
+   FIX: Notification không làm dịch chuyển layout
+   ========================================================= */
+.um-alert {
+    position: fixed;
+    top: 88px;
+    right: 24px;
+    z-index: 2000;
+    width: min(440px, calc(100vw - 32px));
+    margin: 0;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, .16);
+    animation: umToastIn .2s ease-out, umToastAutoHide 4s ease 2.5s forwards;
+}
+
+.um-alert + .um-alert {
+    top: 152px;
+}
+
+@keyframes umToastIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 600px) {
+    .um-alert {
+        top: 76px;
+        right: 12px;
+        width: calc(100vw - 24px);
+    }
+    .um-alert + .um-alert { top: 140px; }
+}
+
+
+/* Tự ẩn thông báo sau khoảng 6,5 giây */
+@keyframes umToastAutoHide {
+    0%, 82% { opacity: 1; visibility: visible; }
+    100% { opacity: 0; visibility: hidden; pointer-events: none; }
+}
+
+/* =========================================================
+   12. PROFILE SKILLS - KỸ NĂNG LẬP TRÌNH
+   ========================================================= */
+
+.um-profile-skills {
+    width: 100%;
+    min-width: 0;
+    margin-top: 18px;
+    padding: 16px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 11px;
+}
+
+.um-profile-skills__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.um-profile-skills__title {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-width: 0;
+}
+
+.um-profile-skills__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    color: #4f46e5;
+    background: #eef2ff;
+    border: 1px solid #e0e7ff;
+    border-radius: 9px;
+    font-size: 15px;
+}
+
+.um-profile-skills__title h5 {
+    margin: 0 0 4px;
+    color: #1e293b;
+    font-size: 13px;
+    font-weight: 750;
+}
+
+.um-profile-skills__title p {
+    margin: 0;
+    color: #64748b;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.um-profile-skills__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    padding: 0 8px;
+    flex-shrink: 0;
+    color: #4338ca;
+    background: #eef2ff;
+    border: 1px solid #c7d2fe;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 750;
+}
+
+.um-profile-skills__list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.um-profile-skill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    max-width: 100%;
+    padding: 7px 10px;
+    color: #4338ca;
+    background: #f5f3ff;
+    border: 1px solid #ddd6fe;
+    border-radius: 7px;
+    font-size: 12px;
+    font-weight: 650;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.um-profile-skill:hover {
+    background: #ede9fe;
+    border-color: #c4b5fd;
+    transform: translateY(-1px);
+}
+
+.um-profile-skill__icon {
+    flex-shrink: 0;
+    color: #6366f1;
+    font-size: 11px;
+}
+
+.um-profile-skills__empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    min-height: 58px;
+    padding: 12px;
+    color: #94a3b8;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 8px;
+    font-size: 12px;
+    text-align: center;
+}
+
+.um-profile-skills__empty svg {
+    flex-shrink: 0;
+    font-size: 15px;
+}
+
+@media (max-width: 480px) {
+    .um-profile-skills {
+        padding: 12px;
+    }
+
+    .um-profile-skills__title {
+        gap: 8px;
+    }
+
+    .um-profile-skills__icon {
+        width: 34px;
+        height: 34px;
+    }
+
+    .um-profile-skills__title p {
+        font-size: 10px;
+    }
+
+    .um-profile-skills__list {
+        gap: 6px;
+    }
+
+    .um-profile-skill {
+        padding: 6px 8px;
+        font-size: 11px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .um-profile-skill {
+        transition: none;
+    }
+
+    .um-profile-skill:hover {
+        transform: none;
+    }
+}

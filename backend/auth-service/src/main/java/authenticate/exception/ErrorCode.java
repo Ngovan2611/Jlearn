@@ -1,0 +1,32 @@
+package authenticate.exception;
+
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.springframework.http.HttpStatus;
+
+
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+public enum ErrorCode {
+    USER_EXISTED(1001, "Tên đăng nhập đã tồn tại", HttpStatus.BAD_REQUEST),
+    UNKNOW(999, "unknow error",  HttpStatus.INTERNAL_SERVER_ERROR),
+    UNAUTHENTICATED(1000, "unauthenticated",   HttpStatus.UNAUTHORIZED),
+    USER_NOT_EXISTED(1002, "user not existed",  HttpStatus.BAD_REQUEST),
+    INVALID_TOKEN(1314, "invalid token", HttpStatus.UNAUTHORIZED),
+    ROLE_NOT_EXISTED(1003, "role not existed", HttpStatus.BAD_REQUEST),
+    INVALID_CREDENTIALS(1000, "Tài khoản hoặc mật khẩu không chính xác", HttpStatus.UNAUTHORIZED),
+    DISCONNECTED(9999, "Không thể kết nối tới cơ sở dữ liệu"
+            , HttpStatus.INTERNAL_SERVER_ERROR),
+    LOCKED(8888, "Tài khoản của bạn đã bị khóa", HttpStatus.FORBIDDEN);
+
+
+
+
+
+    int code;
+    String message;
+    HttpStatus httpStatus;
+}

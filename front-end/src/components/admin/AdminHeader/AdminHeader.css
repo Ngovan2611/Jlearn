@@ -1,0 +1,84 @@
+
+.admin-header {
+    min-height: 84px;
+    padding: 16px 30px;
+    background: #fff;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.admin-header__breadcrumb {
+    color: #94a3b8;
+    font-size: 12px;
+    margin-bottom: 7px;
+}
+
+.admin-header h1 {
+    margin: 0;
+    font-size: 23px;
+    color: #111827;
+}
+
+.admin-header__actions,
+.admin-header__profile {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.admin-header__avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #e0e7ff;
+    color: #4338ca;
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+}
+
+.admin-header__user {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.admin-header__user strong {
+    color: #1f2937;
+    font-size: 13px;
+}
+
+.admin-header__user span {
+    color: #64748b;
+    font-size: 11px;
+}
+
+.admin-header__logout {
+    padding: 9px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: white;
+    color: #475569;
+    cursor: pointer;
+}
+
+.admin-header__logout:hover {
+    background: #f3f4f6;
+}
+
+@media (max-width: 600px) {
+    .admin-header {
+        padding: 14px;
+    }
+
+    .admin-header__user {
+        display: none;
+    }
+
+    .admin-header h1 {
+        font-size: 19px;
+    }
+}
