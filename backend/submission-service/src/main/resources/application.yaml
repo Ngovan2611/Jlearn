@@ -1,0 +1,22 @@
+
+server:
+  port: 8086
+
+spring:
+  application:
+    name: submission-service
+
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/jlearn_submission}
+
+
+services:
+  execution:
+    url: http://localhost:8087
+
+
+app:
+  ai-tutor:
+    base-url: ${AI_TUTOR_URL:http://localhost:8000}
+    grade-path: /api/ai-tutor/grade

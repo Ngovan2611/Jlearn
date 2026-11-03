@@ -1,0 +1,17 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: enrollment-service
+
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/jlearn_enrollment
+
+course-service:
+  url: http://localhost:8083
+
+app:
+  services:
+    user: http://localhost:8082
