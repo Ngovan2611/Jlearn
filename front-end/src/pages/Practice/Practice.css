@@ -1,127 +1,141 @@
 /* =========================================================
-   PRACTICE PAGE - NEUMORPHISM
-   Consistent cards | Search | Difficulty filter | Pagination
+   PRACTICE PAGE - NEUMORPHISM BLUE & WHITE
+   Theme strictly aligned with Courses, Home, and MyCourses
+   (No markup changes needed in Practice.jsx)
    ========================================================= */
 
 .practice-page {
-    --practice-bg: #e9edf5;
-    --practice-surface: #e9edf5;
-    --practice-primary: #526de5;
-    --practice-primary-dark: #4058cc;
-    --practice-text: #26334a;
-    --practice-muted: #8590a5;
-    --practice-border: #dce2ed;
-    --practice-shadow-dark: #c9cfda;
-    --practice-shadow-light: #ffffff;
-    --practice-success: #269b76;
-    --practice-warning: #d99b32;
-    --practice-danger: #d85e6b;
+    --practice-bg: #edf2f8;
+    --practice-blue: #2563eb;
+    --practice-blue-dark: #1d4ed8;
+    --practice-blue-light: #60a5fa;
+    --practice-blue-soft: #e5edff;
+    --practice-text: #1e293b;
+    --practice-muted: #64748b;
+    --practice-border: #dce5f0;
+
+    --practice-shadow:
+        8px 8px 18px rgba(163, 177, 198, 0.38),
+        -8px -8px 18px rgba(255, 255, 255, 0.95);
+
+    --practice-shadow-hover:
+        13px 13px 26px rgba(163, 177, 198, 0.45),
+        -13px -13px 26px rgba(255, 255, 255, 0.98);
+
+    --practice-shadow-inset:
+        inset 4px 4px 8px rgba(163, 177, 198, 0.28),
+        inset -4px -4px 8px rgba(255, 255, 255, 0.95);
 
     min-height: 100vh;
-    padding: 28px 24px 48px;
+    padding-top: 36px;
     background: var(--practice-bg);
     color: var(--practice-text);
-    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family: Inter, "Segoe UI", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
 }
 
-.practice-page *,
-.practice-page *::before,
-.practice-page *::after {
+.practice-container,
+.practice-container *,
+.practice-container *::before,
+.practice-container *::after {
     box-sizing: border-box;
 }
 
+.practice-container button,
+.practice-container input,
+.practice-container select {
+    font: inherit;
+}
+
 .practice-container {
-    width: 100%;
-    max-width: 1320px;
+    width: min(1240px, 92%);
     margin: 0 auto;
+    padding-bottom: 90px;
 }
 
 /* =========================================================
-   HERO
+   HERO SECTION
    ========================================================= */
 
 .practice-hero {
     position: relative;
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    padding: 44px 52px;
+    margin-bottom: 45px;
+
+    display: flex;
     align-items: center;
-    gap: 24px;
-    padding: 24px 28px;
-    margin-bottom: 24px;
-    border-radius: 22px;
-    background: var(--practice-surface);
+    justify-content: space-between;
+    gap: 32px;
+    flex-wrap: wrap;
+
+    overflow: hidden;
+    border-radius: 32px;
+    background: var(--practice-bg);
+
     box-shadow:
-        8px 8px 18px var(--practice-shadow-dark),
-        -8px -8px 18px var(--practice-shadow-light);
+        12px 12px 26px rgba(163, 177, 198, 0.38),
+        -12px -12px 26px rgba(255, 255, 255, 0.95);
+
+    animation: practiceFadeUp 0.6s ease both;
 }
 
 .practice-back-button {
+    position: absolute;
+    top: 20px;
+    left: 28px;
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    gap: 8px;
-    min-height: 42px;
-    padding: 0 16px;
+    gap: 7px;
+    padding: 7px 15px;
     border: none;
-    border-radius: 13px;
-    background: var(--practice-surface);
-    box-shadow:
-        5px 5px 10px var(--practice-shadow-dark),
-        -5px -5px 10px var(--practice-shadow-light);
-    color: var(--practice-text);
-    font-family: inherit;
+    border-radius: 12px;
+    background: var(--practice-bg);
+    color: var(--practice-blue);
     font-size: 13px;
     font-weight: 700;
-    white-space: nowrap;
     cursor: pointer;
-    transition:
-        transform 0.2s ease,
-        box-shadow 0.2s ease;
+    box-shadow:
+        5px 5px 12px rgba(163, 177, 198, 0.32),
+        -5px -5px 12px rgba(255, 255, 255, 0.95);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
 }
 
 .practice-back-button:hover {
-    transform: translateY(-1px);
-}
-
-.practice-back-button:active {
+    transform: translateX(-3px);
+    color: var(--practice-blue-dark);
     box-shadow:
-        inset 3px 3px 6px var(--practice-shadow-dark),
-        inset -3px -3px 6px var(--practice-shadow-light);
-}
-
-.practice-back-button:focus-visible {
-    outline: 2px solid var(--practice-primary);
-    outline-offset: 3px;
-}
-
-.practice-back-button span:first-child {
-    font-size: 18px;
-    line-height: 1;
+        6px 6px 14px rgba(163, 177, 198, 0.42),
+        -6px -6px 14px rgba(255, 255, 255, 1);
 }
 
 .practice-hero-content {
     display: flex;
     align-items: center;
-    gap: 18px;
+    gap: 26px;
+    margin-top: 26px;
+    flex: 1 1 540px;
     min-width: 0;
 }
 
 .practice-hero-icon {
+    width: 82px;
+    height: 82px;
+    min-width: 82px;
+
     display: flex;
     align-items: center;
     justify-content: center;
-    flex: 0 0 62px;
-    width: 62px;
-    height: 62px;
-    border-radius: 18px;
-    background: var(--practice-surface);
-    box-shadow:
-        inset 4px 4px 8px var(--practice-shadow-dark),
-        inset -4px -4px 8px var(--practice-shadow-light);
-    color: var(--practice-primary);
-    font-size: 22px;
+
+    border-radius: 24px;
+    background: var(--practice-bg);
+    color: var(--practice-blue);
+    font-family: monospace;
+    font-size: 28px;
     font-weight: 800;
-    letter-spacing: -2px;
+
+    box-shadow:
+        10px 10px 22px rgba(163, 177, 198, 0.4),
+        -10px -10px 22px rgba(255, 255, 255, 0.98);
 }
 
 .practice-hero-text {
@@ -129,567 +143,435 @@
 }
 
 .practice-eyebrow {
-    display: block;
-    margin-bottom: 6px;
-    color: var(--practice-primary);
-    font-size: 10px;
+    display: inline-block;
+    color: var(--practice-blue);
+    font-size: 11.5px;
     font-weight: 800;
-    letter-spacing: 1.6px;
+    letter-spacing: 1.8px;
+    margin-bottom: 6px;
 }
 
 .practice-hero h1 {
-    margin: 0;
+    margin: 0 0 10px;
     color: var(--practice-text);
-    font-size: clamp(23px, 3vw, 30px);
-    line-height: 1.25;
-    letter-spacing: -0.8px;
-    overflow-wrap: anywhere;
+    font-size: clamp(28px, 3.4vw, 42px);
+    font-weight: 800;
+    letter-spacing: -1.2px;
+    line-height: 1.2;
 }
 
 .practice-hero p {
-    max-width: 580px;
-    margin: 8px 0 0;
+    margin: 0;
     color: var(--practice-muted);
-    font-size: 13px;
-    line-height: 1.65;
+    font-size: 14.5px;
+    line-height: 1.75;
+    max-width: 520px;
 }
 
 .practice-hero-stat {
     display: flex;
-    flex: 0 0 auto;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-width: 112px;
-    min-height: 90px;
-    padding: 14px 18px;
-    border-radius: 16px;
-    background: var(--practice-surface);
+    padding: 22px 34px;
+    border-radius: 22px;
+    background: var(--practice-bg);
     box-shadow:
-        inset 4px 4px 8px var(--practice-shadow-dark),
-        inset -4px -4px 8px var(--practice-shadow-light);
-}
-
-.practice-stat-number {
-    color: var(--practice-primary);
-    font-size: 26px;
-    font-weight: 800;
-    line-height: 1.2;
-}
-
-.practice-stat-label {
-    margin-top: 5px;
-    color: var(--practice-muted);
-    font-size: 10px;
-    font-weight: 600;
+        8px 8px 20px rgba(163, 177, 198, 0.35),
+        -8px -8px 20px rgba(255, 255, 255, 0.95);
+    flex-shrink: 0;
+    margin-top: 24px;
     text-align: center;
 }
 
-/* =========================================================
-   SEARCH AND FILTERS
-   ========================================================= */
+.practice-stat-number {
+    color: var(--practice-blue);
+    font-size: 38px;
+    font-weight: 800;
+    line-height: 1;
+}
 
-/* =========================
-   SEARCH AND FILTERS
-   Căn thẳng hàng tìm kiếm và bộ lọc
-   ========================= */
+.practice-stat-label {
+    color: var(--practice-muted);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-top: 6px;
+}
+
+/* =========================================================
+   TOOLBAR (SEARCH & FILTERS)
+   ========================================================= */
 
 .practice-toolbar {
     display: flex;
     align-items: center;
-    gap: 14px;
-    width: 100%;
-    min-height: 94px;
-    padding: 16px 20px;
-    margin-bottom: 28px;
-    border-radius: 18px;
-    background: var(--practice-surface);
-    box-shadow:
-        6px 6px 14px var(--practice-shadow-dark),
-        -6px -6px 14px var(--practice-shadow-light);
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 35px;
+    flex-wrap: wrap;
 }
 
-/* Thanh tìm kiếm */
 .practice-search {
+    flex: 1 1 360px;
+    min-height: 52px;
+
     display: flex;
     align-items: center;
-    flex: 1 1 0;
-    min-width: 0;
-    height: 46px;
-    padding: 0 14px;
-    margin: 0;
-    border: none;
-    border-radius: 12px;
-    background: var(--practice-surface);
+    gap: 12px;
+
+    padding: 0 18px;
+    border-radius: 16px;
+    background: var(--practice-bg);
+    color: var(--practice-blue);
+
     box-shadow:
-        inset 4px 4px 8px var(--practice-shadow-dark),
-        inset -4px -4px 8px var(--practice-shadow-light);
+        inset 5px 5px 10px rgba(163, 177, 198, 0.3),
+        inset -5px -5px 10px rgba(255, 255, 255, 0.95);
+
     transition: box-shadow 0.2s ease;
 }
 
 .practice-search:focus-within {
     box-shadow:
-        inset 2px 2px 5px var(--practice-shadow-dark),
-        inset -2px -2px 5px var(--practice-shadow-light),
-        0 0 0 2px rgb(82 109 229 / 15%);
+        inset 4px 4px 8px rgba(163, 177, 198, 0.25),
+        inset -4px -4px 8px rgba(255, 255, 255, 0.95),
+        0 0 0 2px rgba(37, 99, 235, 0.22);
 }
 
 .practice-search-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex: 0 0 auto;
-    margin-right: 10px;
-    color: var(--practice-primary);
-    font-size: 20px;
+    font-size: 19px;
+    color: var(--practice-blue);
+    font-weight: bold;
     line-height: 1;
-    transform: rotate(-20deg);
 }
 
 .practice-search input {
-    display: block;
     width: 100%;
     min-width: 0;
-    height: 100%;
-    padding: 0;
-    margin: 0;
+    padding: 14px 0;
     border: none;
     outline: none;
     background: transparent;
     color: var(--practice-text);
-    font-family: inherit;
-    font-size: 13px;
+    font-size: 14px;
 }
 
 .practice-search input::placeholder {
-    color: #9aa4b6;
+    color: #94a3b8;
 }
 
-/* Bộ lọc độ khó */
-.practice-filter {
+.practice-clear-search {
+    border: none;
+    background: transparent;
+    color: var(--practice-muted);
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
-    flex: 0 0 auto;
-    gap: 12px;
-    height: 46px;
-    padding: 0 14px;
-    margin: 0;
-    border: none;
-    border-radius: 12px;
-    background: var(--practice-surface);
+    border-radius: 50%;
+    transition: color 0.2s ease;
+}
+
+.practice-clear-search:hover {
+    color: var(--practice-text);
+}
+
+.practice-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 52px;
+    padding: 0 18px;
+    border-radius: 16px;
+    background: var(--practice-bg);
     box-shadow:
-        inset 4px 4px 8px var(--practice-shadow-dark),
-        inset -4px -4px 8px var(--practice-shadow-light);
+        6px 6px 14px rgba(163, 177, 198, 0.35),
+        -6px -6px 14px rgba(255, 255, 255, 0.95);
 }
 
 .practice-filter label {
-    display: flex;
-    align-items: center;
-    margin: 0;
-    color: var(--practice-muted);
-    font-size: 12px;
+    color: var(--practice-blue);
+    font-size: 13px;
     font-weight: 700;
-    line-height: 1;
-    white-space: nowrap;
 }
 
 .practice-filter select {
-    display: block;
-    max-width: 160px;
-    height: 100%;
-    padding: 0 20px 0 2px;
-    margin: 0;
     border: none;
     outline: none;
     background: transparent;
     color: var(--practice-text);
-    font-family: inherit;
-    font-size: 12px;
-    font-weight: 700;
-    line-height: normal;
+    font-size: 13.5px;
+    font-weight: 600;
     cursor: pointer;
+    padding: 8px 4px;
 }
 
-.practice-filter select option {
-    background: #f2f4f9;
-    color: var(--practice-text);
-}
-
-/* Nút đặt lại */
 .practice-reset-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex: 0 0 auto;
-    height: 46px;
-    padding: 0 20px;
-    margin: 0;
+    min-height: 52px;
+    padding: 0 22px;
     border: none;
-    border-radius: 12px;
-    background: var(--practice-surface);
-    box-shadow:
-        4px 4px 8px var(--practice-shadow-dark),
-        -4px -4px 8px var(--practice-shadow-light);
-    color: var(--practice-primary);
-    font-family: inherit;
-    font-size: 12px;
-    font-weight: 800;
-    line-height: 1;
-    white-space: nowrap;
+    border-radius: 16px;
+    background: var(--practice-bg);
+    color: var(--practice-muted);
+    font-size: 13.5px;
+    font-weight: 700;
     cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow:
+        6px 6px 14px rgba(163, 177, 198, 0.35),
+        -6px -6px 14px rgba(255, 255, 255, 0.95);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
 }
 
 .practice-reset-button:hover {
-    color: var(--practice-primary-dark);
-    transform: translateY(-1px);
-}
-
-.practice-reset-button:active {
+    color: var(--practice-blue);
+    transform: translateY(-2px);
     box-shadow:
-        inset 3px 3px 6px var(--practice-shadow-dark),
-        inset -3px -3px 6px var(--practice-shadow-light);
-    transform: translateY(0);
+        8px 8px 18px rgba(163, 177, 198, 0.42),
+        -8px -8px 18px rgba(255, 255, 255, 1);
 }
 
-/* Responsive */
-@media (max-width: 850px) {
-    .practice-toolbar {
-        flex-wrap: wrap;
-        align-items: center;
-    }
-
-    .practice-search {
-        flex: 1 1 100%;
-        width: 100%;
-    }
-
-    .practice-filter {
-        flex: 1 1 auto;
-        justify-content: space-between;
-    }
-
-    .practice-reset-button {
-        flex: 0 0 auto;
-    }
-}
-
-@media (max-width: 560px) {
-    .practice-toolbar {
-        gap: 10px;
-        padding: 12px;
-    }
-
-    .practice-search,
-    .practice-filter,
-    .practice-reset-button {
-        height: 42px;
-    }
-
-    .practice-filter {
-        gap: 5px;
-        padding: 0 9px;
-    }
-
-    .practice-filter label {
-        font-size: 11px;
-    }
-
-    .practice-filter select {
-        max-width: 125px;
-        font-size: 11px;
-    }
-
-    .practice-reset-button {
-        padding: 0 12px;
-        font-size: 11px;
-    }
-}
 /* =========================================================
-   SECTION HEADING
+   LIST SECTION HEADING
    ========================================================= */
 
 .practice-list-section {
     width: 100%;
-    min-width: 0;
 }
 
 .practice-section-heading {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 18px;
+    gap: 20px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
 }
 
 .practice-section-heading h2 {
     margin: 0;
     color: var(--practice-text);
-    font-size: 19px;
+    font-size: 28px;
     font-weight: 800;
-    line-height: 1.4;
-    letter-spacing: -0.4px;
+    letter-spacing: -0.6px;
 }
 
 .practice-section-heading p {
-    margin: 5px 0 0;
+    margin: 8px 0 0;
     color: var(--practice-muted);
-    font-size: 12px;
-    line-height: 1.5;
+    font-size: 14px;
+    line-height: 1.7;
 }
 
 .practice-page-summary {
-    flex: 0 0 auto;
-    padding: 8px 12px;
-    border-radius: 10px;
-    background: var(--practice-surface);
-    box-shadow:
-        3px 3px 6px var(--practice-shadow-dark),
-        -3px -3px 6px var(--practice-shadow-light);
-    color: var(--practice-primary);
-    font-size: 11px;
-    font-weight: 800;
-    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 18px;
+    border-radius: 14px;
+    background: var(--practice-bg);
+    color: var(--practice-blue);
+    font-size: 13px;
+    font-weight: 700;
+    box-shadow: var(--practice-shadow);
 }
 
 /* =========================================================
-   EXERCISE GRID AND CARDS
+   EXERCISE GRID & CARDS
    ========================================================= */
 
 .practice-grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    align-items: stretch;
-    gap: 20px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 28px;
 }
 
 .practice-card {
+    min-width: 0;
     display: flex;
     flex-direction: column;
-    min-width: 0;
-    min-height: 258px;
-    padding: 17px;
-    border: 1px solid rgb(255 255 255 / 45%);
-    border-radius: 18px;
-    background: var(--practice-surface);
-    box-shadow:
-        6px 6px 13px var(--practice-shadow-dark),
-        -6px -6px 13px var(--practice-shadow-light);
-    transition:
-        transform 0.22s ease,
-        box-shadow 0.22s ease;
-}
+    justify-content: space-between;
 
-.practice-card:hover {
-    transform: translateY(-3px);
-    box-shadow:
-        9px 9px 18px var(--practice-shadow-dark),
-        -9px -9px 18px var(--practice-shadow-light);
+    padding: 28px;
+    border-radius: 24px;
+    background: var(--practice-bg);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+
+    box-shadow: var(--practice-shadow);
+    animation: practiceFadeUp 0.55s ease both;
+
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease;
 }
 
 .practice-card--clickable {
     cursor: pointer;
 }
 
-.practice-card--clickable:focus-visible {
-    outline: 2px solid var(--practice-primary);
-    outline-offset: 4px;
+.practice-card:hover {
+    transform: translateY(-7px);
+    box-shadow: var(--practice-shadow-hover);
 }
 
-.practice-card--clickable .practice-start-button {
-    user-select: none;
+.practice-card:focus-visible {
+    outline: 2px solid var(--practice-blue);
+    outline-offset: 3px;
 }
 
+/* Card Top: Icon + Difficulty */
 .practice-card-top {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
-    margin-bottom: 15px;
+    gap: 12px;
+    margin-bottom: 18px;
 }
 
 .practice-card-icon {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+
     display: flex;
     align-items: center;
     justify-content: center;
-    flex: 0 0 42px;
-    width: 42px;
-    height: 42px;
-    border-radius: 13px;
-    background: var(--practice-surface);
-    box-shadow:
-        inset 3px 3px 6px var(--practice-shadow-dark),
-        inset -3px -3px 6px var(--practice-shadow-light);
-    color: var(--practice-primary);
+
+    border-radius: 14px;
+    background: var(--practice-bg);
+    color: var(--practice-blue);
+    font-family: monospace;
     font-size: 16px;
     font-weight: 800;
-    letter-spacing: -1.5px;
+
+    box-shadow: var(--practice-shadow-inset);
 }
 
 .practice-difficulty {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    max-width: 125px;
-    min-height: 25px;
-    padding: 5px 9px;
-    overflow: hidden;
-    border-radius: 8px;
-    font-size: 10px;
+    padding: 6px 14px;
+    border-radius: 10px;
+    font-size: 11.5px;
     font-weight: 800;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    letter-spacing: 0.3px;
 }
 
 .practice-difficulty--easy {
-    background: #dcefe5;
-    color: #24825e;
+    background: #e6f7ef;
+    color: #0d8a50;
+    border: 1px solid rgba(13, 138, 80, 0.18);
 }
 
 .practice-difficulty--medium {
-    background: #f8ebce;
-    color: #a87516;
+    background: #fff8e6;
+    color: #b46b02;
+    border: 1px solid rgba(180, 107, 2, 0.18);
 }
 
 .practice-difficulty--hard {
-    background: #f5dfe3;
-    color: #bd4657;
+    background: #feecef;
+    color: #cf2244;
+    border: 1px solid rgba(207, 34, 68, 0.18);
 }
 
 .practice-difficulty--default {
-    background: #e0e5ef;
-    color: #6d7890;
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
 }
 
-/* Card body uses a consistent title/description height. */
-
+/* Card Body: Title */
 .practice-card-body {
-    flex: 1 0 auto;
-    min-width: 0;
+    flex: 1 1 auto;
+    margin-bottom: 18px;
 }
 
 .practice-card-body h3 {
-    display: -webkit-box;
-    min-height: calc(1.45em * 2);
-    max-height: calc(1.45em * 2);
-    margin: 0 0 8px;
-    overflow: hidden;
-    color: var(--practice-text);
-    font-size: 15px;
-    line-height: 1.45;
-    overflow-wrap: anywhere;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-}
-
-.practice-card-description {
-    display: -webkit-box;
-    min-height: calc(1.65em * 2);
-    max-height: calc(1.65em * 2);
     margin: 0;
-    overflow: hidden;
-    color: var(--practice-muted);
-    font-size: 11.5px;
-    line-height: 1.65;
-    overflow-wrap: anywhere;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
+    color: var(--practice-text);
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 1.4;
+    letter-spacing: -0.3px;
 }
 
+/* Card Meta */
 .practice-card-meta {
     display: flex;
     align-items: center;
+    gap: 8px;
     flex-wrap: wrap;
-    gap: 12px;
-    min-height: 42px;
-    padding: 12px 0;
-    margin-top: 12px;
-    border-top: 1px solid rgb(194 202 216 / 55%);
+    margin-bottom: 22px;
 }
 
 .practice-card-meta > span {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    color: var(--practice-muted);
-    font-size: 10px;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 10px;
+    background: #e4ecf7;
+    color: #334155;
+    font-size: 11.5px;
     font-weight: 700;
 }
 
-.practice-card-meta > span > span {
-    color: var(--practice-primary);
-    font-size: 13px;
+.practice-card-meta > span:nth-child(2) {
+    background: var(--practice-blue-soft);
+    color: var(--practice-blue);
 }
 
+/* Card Footer */
 .practice-card-footer {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
-    min-height: 45px;
-    padding-top: 11px;
-    margin-top: auto;
-    border-top: 1px solid rgb(194 202 216 / 55%);
+    gap: 12px;
+    padding-top: 18px;
+    border-top: 1px solid var(--practice-border);
 }
 
 .practice-card-index {
-    color: #9aa3b5;
-    font-size: 9px;
+    color: #94a3b8;
+    font-size: 11px;
     font-weight: 800;
-    letter-spacing: 0.8px;
+    letter-spacing: 1.5px;
 }
 
 .practice-start-button {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    gap: 9px;
-    min-height: 33px;
-    padding: 0 12px;
-    border: none;
-    border-radius: 10px;
-    background: var(--practice-surface);
-    box-shadow:
-        3px 3px 6px var(--practice-shadow-dark),
-        -3px -3px 6px var(--practice-shadow-light);
-    color: var(--practice-primary);
-    font-family: inherit;
-    font-size: 11px;
-    font-weight: 800;
-    text-decoration: none;
-    white-space: nowrap;
-    transition:
-        color 0.2s ease,
-        background 0.2s ease,
-        box-shadow 0.2s ease;
-}
-
-.practice-start-button:hover {
-    background: var(--practice-primary);
-    box-shadow:
-        3px 3px 7px rgb(64 88 204 / 25%),
-        -3px -3px 7px var(--practice-shadow-light);
-    color: #ffffff;
-}
-
-.practice-start-button:active {
-    box-shadow:
-        inset 2px 2px 4px rgb(34 49 120 / 25%),
-        inset -2px -2px 4px rgb(255 255 255 / 12%);
-}
-
-.practice-start-button > span {
-    font-size: 15px;
-    line-height: 1;
-}
-
-.practice-id-warning {
-    color: var(--practice-danger);
-    font-size: 10px;
+    gap: 8px;
+    padding: 9px 18px;
+    border-radius: 13px;
+    font-size: 13px;
     font-weight: 700;
+    color: #ffffff;
+    background: linear-gradient(
+        135deg,
+        var(--practice-blue),
+        var(--practice-blue-dark)
+    );
+    box-shadow:
+        5px 5px 12px rgba(37, 99, 235, 0.22),
+        -4px -4px 10px rgba(255, 255, 255, 0.75);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.practice-card:hover .practice-start-button {
+    background: linear-gradient(
+        135deg,
+        #3b82f6,
+        var(--practice-blue-dark)
+    );
+    box-shadow:
+        0 8px 18px rgba(37, 99, 235, 0.28),
+        -3px -3px 8px rgba(255, 255, 255, 0.8);
+    transform: translateY(-2px);
 }
 
 /* =========================================================
@@ -700,506 +582,252 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-wrap: wrap;
     gap: 10px;
-    margin-top: 30px;
+    margin-top: 55px;
 }
 
 .practice-page-button,
 .practice-page-arrow {
-    display: flex;
+    min-width: 44px;
+    height: 44px;
+    padding: 0 14px;
+    border: none;
+    border-radius: 13px;
+    background: var(--practice-bg);
+    color: var(--practice-text);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow:
+        5px 5px 12px rgba(163, 177, 198, 0.35),
+        -5px -5px 12px rgba(255, 255, 255, 0.95);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    flex: 0 0 38px;
-    width: 38px;
-    height: 38px;
-    padding: 0;
-    border: none;
-    border-radius: 11px;
-    background: var(--practice-surface);
-    box-shadow:
-        4px 4px 8px var(--practice-shadow-dark),
-        -4px -4px 8px var(--practice-shadow-light);
-    color: var(--practice-text);
-    font-family: inherit;
-    font-size: 12px;
-    font-weight: 800;
-    cursor: pointer;
-    transition:
-        color 0.18s ease,
-        transform 0.18s ease;
 }
 
-.practice-page-button:hover:not(:disabled),
+.practice-page-button:hover:not(:disabled):not(.is-active),
 .practice-page-arrow:hover:not(:disabled) {
-    color: var(--practice-primary);
-    transform: translateY(-1px);
+    color: var(--practice-blue);
+    transform: translateY(-2px);
+    box-shadow:
+        7px 7px 16px rgba(163, 177, 198, 0.42),
+        -7px -7px 16px rgba(255, 255, 255, 1);
 }
 
 .practice-page-button.is-active {
-    background: var(--practice-primary);
-    box-shadow:
-        4px 4px 8px var(--practice-shadow-dark),
-        -4px -4px 8px var(--practice-shadow-light);
+    background: linear-gradient(
+        135deg,
+        var(--practice-blue),
+        var(--practice-blue-dark)
+    );
     color: #ffffff;
+    box-shadow:
+        5px 5px 12px rgba(37, 99, 235, 0.28),
+        -4px -4px 10px rgba(255, 255, 255, 0.75);
+    cursor: default;
 }
 
 .practice-page-button:disabled,
 .practice-page-arrow:disabled {
-    opacity: 0.4;
+    opacity: 0.45;
     cursor: not-allowed;
+    transform: none;
 }
 
 .practice-page-ellipsis {
     color: var(--practice-muted);
-    font-size: 13px;
+    font-size: 16px;
+    font-weight: 700;
+    padding: 0 4px;
 }
 
 /* =========================================================
-   LOADING / ERROR / EMPTY
+   STATES (LOADING, EMPTY, ERROR)
    ========================================================= */
 
 .practice-state {
+    min-height: 320px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 250px;
-    padding: 30px 20px;
-    border-radius: 20px;
-    background: var(--practice-surface);
-    box-shadow:
-        inset 5px 5px 10px var(--practice-shadow-dark),
-        inset -5px -5px 10px var(--practice-shadow-light);
+    padding: 45px 20px;
+    border-radius: 28px;
+    background: var(--practice-bg);
+    box-shadow: var(--practice-shadow);
     text-align: center;
-}
-
-.practice-state h3 {
-    margin: 14px 0 6px;
-    color: var(--practice-text);
-    font-size: 16px;
-    font-weight: 800;
-}
-
-.practice-state p {
-    max-width: 420px;
-    margin: 0;
-    color: var(--practice-muted);
-    font-size: 12px;
-    line-height: 1.7;
+    margin: 20px 0;
 }
 
 .practice-spinner {
-    width: 36px;
-    height: 36px;
-    border: 3px solid #d1d8e6;
-    border-top-color: var(--practice-primary);
+    width: 44px;
+    height: 44px;
+    border: 3.5px solid var(--practice-border);
+    border-top-color: var(--practice-blue);
     border-radius: 50%;
-    animation: practice-spin 0.75s linear infinite;
+    animation: practiceSpin 0.8s linear infinite;
+    margin-bottom: 18px;
 }
 
 .practice-state-icon {
+    width: 75px;
+    height: 75px;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 48px;
-    height: 48px;
-    border-radius: 15px;
-    background: var(--practice-surface);
-    box-shadow:
-        4px 4px 8px var(--practice-shadow-dark),
-        -4px -4px 8px var(--practice-shadow-light);
-    color: var(--practice-primary);
-    font-size: 25px;
+    margin-bottom: 22px;
+    border-radius: 24px;
+    background: var(--practice-bg);
+    color: var(--practice-blue);
+    font-size: 28px;
     font-weight: 800;
+    box-shadow: var(--practice-shadow-inset);
 }
 
-.practice-state--error .practice-state-icon {
-    color: var(--practice-danger);
+.practice-state h3 {
+    margin: 0 0 10px;
+    color: var(--practice-text);
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.practice-state p {
+    max-width: 440px;
+    margin: 0 0 20px;
+    color: var(--practice-muted);
+    font-size: 14px;
+    line-height: 1.7;
 }
 
 .practice-retry-button {
-    min-height: 38px;
-    padding: 0 16px;
-    margin-top: 18px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
     border: none;
-    border-radius: 10px;
-    background: var(--practice-surface);
-    box-shadow:
-        4px 4px 8px var(--practice-shadow-dark),
-        -4px -4px 8px var(--practice-shadow-light);
-    color: var(--practice-primary);
-    font-family: inherit;
-    font-size: 12px;
-    font-weight: 800;
+    border-radius: 14px;
+    background: linear-gradient(
+        135deg,
+        var(--practice-blue),
+        var(--practice-blue-dark)
+    );
+    color: #ffffff;
+    font-size: 13.5px;
+    font-weight: 700;
     cursor: pointer;
-    transition:
-        color 0.2s ease,
-        transform 0.2s ease;
+    box-shadow:
+        5px 5px 12px rgba(37, 99, 235, 0.24),
+        -4px -4px 10px rgba(255, 255, 255, 0.75);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .practice-retry-button:hover {
-    color: var(--practice-primary-dark);
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow:
+        0 8px 18px rgba(37, 99, 235, 0.32),
+        -3px -3px 8px rgba(255, 255, 255, 0.8);
 }
 
-@keyframes practice-spin {
+.practice-state--error .practice-state-icon {
+    color: #dc2626;
+}
+
+/* =========================================================
+   ANIMATIONS & KEYFRAMES
+   ========================================================= */
+
+@keyframes practiceFadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes practiceSpin {
     to {
         transform: rotate(360deg);
     }
 }
 
 /* =========================================================
-   RESPONSIVE: TABLET
+   RESPONSIVE QUERIES
    ========================================================= */
 
-@media (max-width: 1100px) {
-    .practice-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 18px;
-    }
-
-    .practice-card {
-        padding: 16px;
-    }
-
+@media (max-width: 1050px) {
     .practice-hero {
-        gap: 18px;
-        padding: 22px;
-    }
-}
-
-@media (max-width: 850px) {
-    .practice-page {
-        padding: 22px 18px 38px;
+        padding: 40px 32px;
     }
 
     .practice-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 22px;
+    }
+}
+
+@media (max-width: 768px) {
+    .practice-hero {
+        padding: 30px 22px;
+        flex-direction: column;
+        align-items: flex-start;
+        margin-bottom: 35px;
+        border-radius: 24px;
+    }
+
+    .practice-hero-content {
+        flex-direction: column;
+        align-items: flex-start;
         gap: 16px;
     }
 
-    .practice-hero {
-        grid-template-columns: auto minmax(0, 1fr);
-        gap: 18px;
-        padding: 22px;
-    }
-
-    .practice-hero-content {
-        grid-column: 2;
-        grid-row: 1;
-    }
-
-    .practice-back-button {
-        grid-column: 1;
-        grid-row: 1;
-    }
-
     .practice-hero-stat {
-        grid-column: 2;
-        justify-self: start;
-        min-height: auto;
-        padding: 10px 14px;
+        width: 100%;
+        margin-top: 10px;
     }
 
-    .practice-stat-number {
-        font-size: 21px;
+    .practice-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .practice-section-heading {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
     }
 
     .practice-toolbar {
-        flex-wrap: wrap;
+        flex-direction: column;
+        align-items: stretch;
     }
 
     .practice-search {
+        width: 100%;
         flex: 1 1 100%;
     }
 
-    .practice-filter {
-        flex: 1 1 auto;
+    .practice-filter,
+    .practice-reset-button {
+        width: 100%;
+        justify-content: center;
     }
 }
 
-/* =========================================================
-   RESPONSIVE: MOBILE
-   ========================================================= */
-
-@media (max-width: 560px) {
-    .practice-page {
-        padding: 16px 12px 30px;
-    }
-
-    .practice-hero {
-        grid-template-columns: minmax(0, 1fr) auto;
-        align-items: start;
-        gap: 14px;
-        padding: 18px 15px;
-        border-radius: 17px;
-    }
-
-    .practice-back-button {
-        grid-column: 1 / -1;
-        grid-row: 1;
-        justify-self: start;
-        min-height: 36px;
-        padding: 0 12px;
-        font-size: 12px;
-    }
-
-    .practice-hero-content {
-        grid-column: 1 / -1;
-        grid-row: 2;
-        align-items: flex-start;
-        gap: 12px;
-    }
-
-    .practice-hero-icon {
-        flex-basis: 43px;
-        width: 43px;
-        height: 43px;
-        border-radius: 12px;
-        font-size: 16px;
-    }
-
-    .practice-eyebrow {
-        font-size: 8px;
-        letter-spacing: 1px;
+@media (max-width: 480px) {
+    .practice-container {
+        width: 94%;
+        padding-bottom: 60px;
     }
 
     .practice-hero h1 {
-        font-size: 20px;
-    }
-
-    .practice-hero p {
-        margin-top: 6px;
-        font-size: 11px;
-    }
-
-    .practice-hero-stat {
-        grid-column: 1 / -1;
-        grid-row: 3;
-        justify-self: start;
-        flex-direction: row;
-        gap: 9px;
-        padding: 9px 12px;
-        border-radius: 12px;
-    }
-
-    .practice-stat-number {
-        font-size: 20px;
-    }
-
-    .practice-stat-label {
-        margin-top: 0;
-        font-size: 9px;
-    }
-
-    .practice-toolbar {
-        gap: 10px;
-        padding: 12px;
-        margin-bottom: 23px;
-        border-radius: 15px;
-    }
-
-    .practice-search {
-        flex-basis: 100%;
-        height: 42px;
-    }
-
-    .practice-filter {
-        flex: 1 1 auto;
-        height: 42px;
-        gap: 5px;
-        padding: 0 9px;
-    }
-
-    .practice-filter label {
-        font-size: 11px;
-    }
-
-    .practice-filter select {
-        max-width: 125px;
-        font-size: 11px;
-    }
-
-    .practice-reset-button {
-        min-width: 0;
-        height: 42px;
-        padding: 0 12px;
-        font-size: 11px;
-    }
-
-    .practice-section-heading {
-        align-items: flex-start;
-        gap: 10px;
-    }
-
-    .practice-section-heading h2 {
-        font-size: 17px;
-    }
-
-    .practice-section-heading p {
-        font-size: 11px;
-    }
-
-    .practice-page-summary {
-        padding: 7px 9px;
-        font-size: 10px;
-    }
-
-    .practice-grid {
-        gap: 13px;
+        font-size: 26px;
     }
 
     .practice-card {
-        min-height: 245px;
-        padding: 12px;
-        border-radius: 15px;
-        box-shadow:
-            4px 4px 9px var(--practice-shadow-dark),
-            -4px -4px 9px var(--practice-shadow-light);
-    }
-
-    .practice-card-top {
-        align-items: flex-start;
-        flex-direction: column;
-        gap: 10px;
-        margin-bottom: 12px;
-    }
-
-    .practice-card-icon {
-        flex-basis: 36px;
-        width: 36px;
-        height: 36px;
-        border-radius: 11px;
-        font-size: 14px;
-    }
-
-    .practice-difficulty {
-        max-width: 100%;
-        min-height: 22px;
-        padding: 4px 7px;
-        font-size: 9px;
-    }
-
-    .practice-card-body h3 {
-        font-size: 13px;
-        line-height: 1.45;
-        min-height: calc(1.45em * 2);
-        max-height: calc(1.45em * 2);
-    }
-
-    .practice-card-description {
-        font-size: 10.5px;
-        line-height: 1.55;
-        min-height: calc(1.55em * 2);
-        max-height: calc(1.55em * 2);
-    }
-
-    .practice-card-meta {
-        gap: 8px;
-        padding: 10px 0;
-        margin-top: 9px;
-    }
-
-    .practice-card-meta > span {
-        gap: 4px;
-        font-size: 9px;
-    }
-
-    .practice-card-footer {
-        align-items: flex-start;
-        flex-direction: column;
-        gap: 9px;
-    }
-
-    .practice-card-index {
-        font-size: 8px;
-    }
-
-    .practice-start-button {
-        width: 100%;
-        min-height: 32px;
-        justify-content: space-between;
-        padding: 0 10px;
-        font-size: 10px;
-    }
-
-    .practice-pagination {
-        gap: 8px;
-        margin-top: 24px;
-    }
-
-    .practice-page-button,
-    .practice-page-arrow {
-        flex-basis: 34px;
-        width: 34px;
-        height: 34px;
-        border-radius: 9px;
-    }
-}
-
-/* =========================================================
-   RESPONSIVE: SMALL MOBILE
-   ========================================================= */
-
-@media (max-width: 360px) {
-    .practice-grid {
-        grid-template-columns: minmax(0, 1fr);
-    }
-
-    .practice-card {
-        min-height: 225px;
-    }
-
-    .practice-card-top {
-        align-items: center;
-        flex-direction: row;
-    }
-
-    .practice-card-footer {
-        align-items: center;
-        flex-direction: row;
-    }
-
-    .practice-start-button {
-        width: auto;
-        justify-content: center;
-    }
-
-    .practice-hero-stat {
-        display: none;
-    }
-
-    .practice-filter label {
-        display: none;
-    }
-
-    .practice-section-heading {
-        flex-wrap: wrap;
-    }
-}
-
-/* =========================================================
-   ACCESSIBILITY
-   ========================================================= */
-
-.practice-card--clickable:focus-visible,
-.practice-start-button:focus-visible,
-.practice-reset-button:focus-visible,
-.practice-page-button:focus-visible,
-.practice-page-arrow:focus-visible,
-.practice-retry-button:focus-visible {
-    outline: 2px solid var(--practice-primary);
-    outline-offset: 3px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .practice-page *,
-    .practice-page *::before,
-    .practice-page *::after {
-        scroll-behavior: auto !important;
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
+        padding: 22px 20px;
     }
 }

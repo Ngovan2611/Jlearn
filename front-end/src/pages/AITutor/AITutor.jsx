@@ -1,5 +1,6 @@
-
 import { useEffect, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import {
     faBars,
     faBrain,
@@ -15,26 +16,40 @@ import {
     faUser,
     faWandMagicSparkles,
     faXmark,
+    faBug,
+    faRotateRight,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import aiTutorService from "../../services/aiTutorService";
 import "./AITutor.css";
 
+const PAGE_SIZE_MESSAGES = 20;
+const PAGE_SIZE_CONVERSATIONS = 20;
+
 const suggestions = [
+    {
+        icon: faBug,
+        title: "Phân tích lỗi code",
+        description: "Phân tích lỗi biên dịch và runtime trong code Java",
+        prompt: "Phân tích lỗi code giúp tôi: hướng dẫn cách xử lý và khắc phục lỗi khi chạy chương trình Java.",
+    },
     {
         icon: faCode,
         title: "Spring Boot",
-        description: "Giải thích Dependency Injection trong Spring",
+        description: "Giải thích Dependency Injection trong Spring Boot",
+        prompt: "Giải thích Dependency Injection trong Spring Boot và cho ví dụ minh họa bằng code Java",
     },
     {
         icon: faBrain,
         title: "Thuật toán",
-        description: "Hướng dẫn cách giải bài toán bằng Java",
+        description: "Hướng dẫn tư duy giải bài toán và độ phức tạp",
+        prompt: "Hướng dẫn các phương pháp tối ưu thuật toán tìm kiếm và sắp xếp phổ biến trong Java",
     },
     {
         icon: faGraduationCap,
         title: "Lộ trình học",
-        description: "Lập kế hoạch học Java Backend",
+        description: "Lập kế hoạch học Java Backend từ cơ bản đến nâng cao",
+        prompt: "Lập lộ trình học Java Backend từ Java Core đến Spring Boot, Microservices và CSDL",
     },
 ];
 
@@ -75,7 +90,7 @@ function generateConversationTitle(question) {
 
 function normalizeMessages(data, conversationId) {
     return getList(data).map((item, index) => ({
-        id: item.id ?? `${conversationId}-${index}`,
+        id: item.id ?? item._id ?? `${conversationId}-${index}`,
         role: item.role,
         content: item.content,
     }));
@@ -91,37 +106,79 @@ function AITutor() {
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [error, setError] = useState("");
 
+    // Phân trang tin nhắn và hội thoại
+    const [hasMoreMessages, setHasMoreMessages] = useState(false);
+    const [loadingOlderMessages, setLoadingOlderMessages] = useState(false);
+    const [hasMoreConversations, setHasMoreConversations] = useState(false);
+    const [loadingMoreConversations, setLoadingMoreConversations] = useState(false);
+
     const bottomRef = useRef(null);
+    const chatContainerRef = useRef(null);
     const inputRef = useRef(null);
     const activeIdRef = useRef(null);
     const loadingRef = useRef(false);
     const historyRequestRef = useRef(0);
+    const isPrependingRef = useRef(false);
+    const shouldSmoothScrollRef = useRef(false);
 
-    // Cuộn xuống tin nhắn mới nhất.
+    // Luôn luôn tự động focus vào ô nhập chat mỗi khi hỏi xong hoặc khi chuyển cuộc trò chuyện
     useEffect(() => {
-        bottomRef.current?.scrollIntoView({
-            behavior: "smooth",
-        });
+        if (!loading) {
+            const timer = setTimeout(() => {
+                inputRef.current?.focus();
+            }, 60);
+            return () => clearTimeout(timer);
+        }
+    }, [loading, activeId]);
+
+    // Cuộn xuống tin nhắn mới nhất:
+    // KHÔNG lướt qua các tin nhắn cũ khi mở cuộc trò chuyện (nhảy tức thì)
+    // Chỉ cuộn smooth khi người dùng vừa gửi câu hỏi mới
+    useEffect(() => {
+        if (isPrependingRef.current) return;
+
+        if (shouldSmoothScrollRef.current) {
+            bottomRef.current?.scrollIntoView({
+                behavior: "smooth",
+            });
+            shouldSmoothScrollRef.current = false;
+        } else {
+            // Nhảy trực tiếp tới tin nhắn mới nhất ngay lập tức, không lướt hoạt họa
+            if (chatContainerRef.current) {
+                chatContainerRef.current.scrollTop =
+                    chatContainerRef.current.scrollHeight;
+            } else {
+                bottomRef.current?.scrollIntoView({
+                    behavior: "instant",
+                });
+            }
+        }
     }, [messages, loading]);
 
-    // Tải danh sách hội thoại khi component khởi tạo.
+    // Tải danh sách hội thoại khi component khởi tạo (Chỉ tải batch đầu tiên)
     useEffect(() => {
         let cancelled = false;
 
         async function fetchConversations() {
             try {
-                const data = await aiTutorService.getConversations();
+                const data = await aiTutorService.getConversations({
+                    limit: PAGE_SIZE_CONVERSATIONS,
+                    skip: 0,
+                });
 
                 if (!cancelled) {
-                    setConversations(getList(data));
+                    const list = getList(data);
+                    setConversations(list);
+                    setHasMoreConversations(Boolean(data?.has_more));
+
+                    // Nếu có sẵn hội thoại gần nhất, tự động mở
+                    if (list.length > 0 && !activeIdRef.current) {
+                        void openConversation(list[0]);
+                    }
                 }
             } catch (err) {
                 if (!cancelled) {
-                    console.error(
-                        "[AI Tutor] Load conversations:",
-                        err
-                    );
-
+                    console.error("[AI Tutor] Load conversations:", err);
                     setError(
                         getErrorMessage(
                             err,
@@ -143,8 +200,30 @@ function AITutor() {
         };
     }, []);
 
-    // Tạo khung chat mới.
-    // Chưa gọi API tạo hội thoại cho đến khi gửi câu hỏi đầu tiên.
+    // Tải thêm các cuộc trò chuyện cũ hơn trong sidebar
+    async function loadMoreConversations() {
+        if (!hasMoreConversations || loadingMoreConversations) return;
+
+        setLoadingMoreConversations(true);
+        try {
+            const data = await aiTutorService.getConversations({
+                limit: PAGE_SIZE_CONVERSATIONS,
+                skip: conversations.length,
+            });
+
+            const more = getList(data);
+            if (more.length > 0) {
+                setConversations((previous) => [...previous, ...more]);
+            }
+            setHasMoreConversations(Boolean(data?.has_more));
+        } catch (err) {
+            console.error("[AI Tutor] Load more conversations failed:", err);
+        } finally {
+            setLoadingMoreConversations(false);
+        }
+    }
+
+    // Tạo khung chat mới (Reset cục bộ, tạo hội thoại lười khi gửi tin nhắn)
     function createConversation() {
         if (loadingRef.current) return;
 
@@ -153,13 +232,17 @@ function AITutor() {
         activeIdRef.current = null;
         setActiveId(null);
         setMessages([]);
+        setHasMoreMessages(false);
         setQuestion("");
         setError("");
+        shouldSmoothScrollRef.current = false;
 
-        inputRef.current?.focus();
+        setTimeout(() => {
+            inputRef.current?.focus();
+        }, 50);
     }
 
-    // Mở hội thoại và tải lịch sử tin nhắn.
+    // Mở hội thoại và tải N tin nhắn gần nhất (không load hết để tiết kiệm tài nguyên)
     async function openConversation(conversation) {
         if (!conversation?.id || loadingRef.current) return;
 
@@ -169,13 +252,16 @@ function AITutor() {
         activeIdRef.current = conversationId;
         setActiveId(conversationId);
         setMessages([]);
+        setHasMoreMessages(false);
         setError("");
+        // Không lướt hoạt họa khi mở hội thoại mới
+        shouldSmoothScrollRef.current = false;
 
         try {
-            const data =
-                await aiTutorService.getMessages(conversationId);
+            const data = await aiTutorService.getMessages(conversationId, {
+                limit: PAGE_SIZE_MESSAGES,
+            });
 
-            // Bỏ qua kết quả cũ nếu người dùng đã chuyển hội thoại.
             if (
                 requestId !== historyRequestRef.current ||
                 activeIdRef.current !== conversationId
@@ -184,10 +270,18 @@ function AITutor() {
             }
 
             setMessages(normalizeMessages(data, conversationId));
+            setHasMoreMessages(Boolean(data?.has_more));
+
+            // Đặt vị trí cuộn ngay lập tức ở cuối, không lướt qua tin nhắn cũ
+            requestAnimationFrame(() => {
+                if (chatContainerRef.current) {
+                    chatContainerRef.current.scrollTop =
+                        chatContainerRef.current.scrollHeight;
+                }
+            });
         } catch (err) {
             if (requestId === historyRequestRef.current) {
                 console.error("[AI Tutor] Load messages:", err);
-
                 setError(
                     getErrorMessage(
                         err,
@@ -195,6 +289,72 @@ function AITutor() {
                     )
                 );
             }
+        } finally {
+            setTimeout(() => {
+                inputRef.current?.focus();
+            }, 60);
+        }
+    }
+
+    // Tải thêm các tin nhắn cũ hơn trước đó (Prepend & giữ nguyên vị trí cuộn)
+    async function loadOlderMessages() {
+        if (
+            !hasMoreMessages ||
+            loadingOlderMessages ||
+            !activeIdRef.current ||
+            messages.length === 0
+        ) {
+            return;
+        }
+
+        const oldestMessage = messages[0];
+        if (!oldestMessage?.id) return;
+
+        setLoadingOlderMessages(true);
+        isPrependingRef.current = true;
+        shouldSmoothScrollRef.current = false;
+
+        const container = chatContainerRef.current;
+        const prevScrollHeight = container ? container.scrollHeight : 0;
+        const prevScrollTop = container ? container.scrollTop : 0;
+
+        try {
+            const data = await aiTutorService.getMessages(
+                activeIdRef.current,
+                {
+                    limit: PAGE_SIZE_MESSAGES,
+                    before_id: oldestMessage.id,
+                }
+            );
+
+            const olderMessages = normalizeMessages(
+                data,
+                activeIdRef.current
+            );
+
+            if (olderMessages.length > 0) {
+                setMessages((previous) => [
+                    ...olderMessages,
+                    ...previous,
+                ]);
+            }
+
+            setHasMoreMessages(Boolean(data?.has_more));
+
+            // Duy trì vị trí thanh cuộn mượt mà
+            requestAnimationFrame(() => {
+                if (container) {
+                    const heightDiff =
+                        container.scrollHeight - prevScrollHeight;
+                    container.scrollTop = prevScrollTop + heightDiff;
+                }
+                isPrependingRef.current = false;
+            });
+        } catch (err) {
+            console.error("[AI Tutor] Load older messages failed:", err);
+            isPrependingRef.current = false;
+        } finally {
+            setLoadingOlderMessages(false);
         }
     }
 
@@ -210,6 +370,8 @@ function AITutor() {
         loadingRef.current = true;
         setLoading(true);
         setQuestion("");
+        isPrependingRef.current = false;
+        shouldSmoothScrollRef.current = true;
 
         const userMessageId = createMessageId("user");
         let conversationId = activeIdRef.current;
@@ -252,18 +414,11 @@ function AITutor() {
                 ]);
             }
 
-            console.log("[AI Tutor] Sending:", {
-                conversation_id: conversationId,
-                question: content,
-            });
-
-            // Endpoint này lưu cả câu hỏi và câu trả lời vào lịch sử.
+            // Gửi câu hỏi và nhận câu trả lời.
             const response = await aiTutorService.sendMessage(
                 conversationId,
                 content
             );
-
-            console.log("[AI Tutor] Response:", response);
 
             const result = getConversation(response);
 
@@ -278,7 +433,7 @@ function AITutor() {
                 );
             }
 
-            // Chỉ cập nhật giao diện nếu vẫn đang mở hội thoại này.
+            // Cập nhật câu trả lời nếu người dùng vẫn đang ở hội thoại này
             if (activeIdRef.current === conversationId) {
                 const assistantMessage = {
                     id:
@@ -288,49 +443,24 @@ function AITutor() {
                     content: answer,
                 };
 
+                shouldSmoothScrollRef.current = true;
                 setMessages((previous) => [
                     ...previous,
                     assistantMessage,
                 ]);
 
-                // Đồng bộ lịch sử từ backend.
+                // Làm mới danh sách hội thoại để cập nhật thứ tự mới nhất
                 try {
-                    const historyData =
-                        await aiTutorService.getMessages(
-                            conversationId
-                        );
-
-                    if (
-                        activeIdRef.current === conversationId
-                    ) {
-                        const history = normalizeMessages(
-                            historyData,
-                            conversationId
-                        );
-
-                        if (history.length > 0) {
-                            setMessages(history);
-                        }
-                    }
-                } catch (historyError) {
-                    console.error(
-                        "[AI Tutor] Refresh history:",
-                        historyError
-                    );
+                    const conversationData =
+                        await aiTutorService.getConversations({
+                            limit: PAGE_SIZE_CONVERSATIONS,
+                            skip: 0,
+                        });
+                    setConversations(getList(conversationData));
+                    setHasMoreConversations(Boolean(conversationData?.has_more));
+                } catch {
+                    // Không chặn nếu refresh danh sách thất bại
                 }
-            }
-
-            // Cập nhật danh sách hội thoại.
-            try {
-                const conversationData =
-                    await aiTutorService.getConversations();
-
-                setConversations(getList(conversationData));
-            } catch (refreshError) {
-                console.error(
-                    "[AI Tutor] Refresh conversations:",
-                    refreshError
-                );
             }
         } catch (err) {
             console.error(
@@ -344,7 +474,10 @@ function AITutor() {
         } finally {
             loadingRef.current = false;
             setLoading(false);
-            inputRef.current?.focus();
+            // Luôn đảm bảo focus lại vào ô nhập sau khi gửi xong
+            setTimeout(() => {
+                inputRef.current?.focus();
+            }, 60);
         }
     }
 
@@ -353,32 +486,42 @@ function AITutor() {
         void sendMessage();
     }
 
+    // Lấy tiêu đề hội thoại đang mở
+    const activeConversation = conversations.find(
+        (c) => c.id === activeId
+    );
+
     return (
         <div className="ai-tutor">
+            {/* SIDEBAR */}
             <aside
                 className={`ai-sidebar ${
                     sidebarOpen ? "" : "collapsed"
                 }`}
             >
                 <div className="ai-brand">
-                    <div className="ai-brand-icon">
-                        <FontAwesomeIcon icon={faBrain} />
-                    </div>
+                    {sidebarOpen ? (
+                        <>
+                            <div className="ai-brand-icon">
+                                <FontAwesomeIcon icon={faBrain} />
+                            </div>
 
-                    {sidebarOpen && (
-                        <div>
-                            <strong>JLearn</strong>
-                            <span>AI TUTOR</span>
-                        </div>
-                    )}
+                            <div className="ai-brand-info">
+                                <strong>JLearn AI</strong>
+                                <span>TRỢ LÝ HỌC TẬP</span>
+                            </div>
+                        </>
+                    ) : null}
 
+                    {/* Nút ||| chuyển đổi đóng / mở sidebar luôn hiển thị rõ ràng */}
                     <button
                         type="button"
-                        className="neu-icon-btn sidebar-toggle"
+                        className="sidebar-toggle-btn"
                         onClick={() =>
                             setSidebarOpen((value) => !value)
                         }
-                        aria-label="Thu gọn sidebar"
+                        aria-label={sidebarOpen ? "Thu gọn thanh bên" : "Mở rộng thanh bên"}
+                        title={sidebarOpen ? "Thu gọn thanh bên" : "Mở rộng thanh bên"}
                     >
                         <FontAwesomeIcon icon={faBars} />
                     </button>
@@ -389,6 +532,7 @@ function AITutor() {
                     className="new-chat-btn"
                     onClick={createConversation}
                     disabled={loading}
+                    title="Bắt đầu cuộc trò chuyện mới"
                 >
                     <FontAwesomeIcon icon={faPlus} />
                     {sidebarOpen && (
@@ -400,43 +544,64 @@ function AITutor() {
                     <>
                         <div className="sidebar-section-title">
                             <FontAwesomeIcon icon={faHistory} />
-                            <span>LỊCH SỬ GẦN ĐÂY</span>
+                            <span>LỊCH SỬ HỘI THOẠI</span>
                         </div>
 
                         <div className="conversation-list">
                             {loadingHistory ? (
                                 <p className="sidebar-empty">
-                                    Đang tải...
+                                    Đang tải lịch sử...
                                 </p>
                             ) : conversations.length === 0 ? (
                                 <p className="sidebar-empty">
-                                    Chưa có hội thoại nào.
+                                    Chưa có cuộc trò chuyện nào.
                                 </p>
                             ) : (
-                                conversations.map((conversation) => (
-                                    <button
-                                        type="button"
-                                        key={conversation.id}
-                                        className={`conversation-item ${
-                                            activeId === conversation.id
-                                                ? "active"
-                                                : ""
-                                        }`}
-                                        onClick={() =>
-                                            void openConversation(
-                                                conversation
-                                            )
-                                        }
-                                        title={conversation.title}
-                                    >
-                                        <FontAwesomeIcon
-                                            icon={faMessage}
-                                        />
-                                        <span>
-                                            {conversation.title}
-                                        </span>
-                                    </button>
-                                ))
+                                <>
+                                    {conversations.map((conversation) => (
+                                        <button
+                                            type="button"
+                                            key={conversation.id}
+                                            className={`conversation-item ${
+                                                activeId === conversation.id
+                                                    ? "active"
+                                                    : ""
+                                            }`}
+                                            onClick={() =>
+                                                void openConversation(
+                                                    conversation
+                                                )
+                                            }
+                                            title={conversation.title}
+                                        >
+                                            <FontAwesomeIcon
+                                                icon={faMessage}
+                                            />
+                                            <span>
+                                                {conversation.title}
+                                            </span>
+                                        </button>
+                                    ))}
+
+                                    {hasMoreConversations && (
+                                        <button
+                                            type="button"
+                                            className="sidebar-load-more-btn"
+                                            onClick={loadMoreConversations}
+                                            disabled={loadingMoreConversations}
+                                        >
+                                            <FontAwesomeIcon
+                                                icon={faRotateRight}
+                                                spin={loadingMoreConversations}
+                                            />
+                                            <span>
+                                                {loadingMoreConversations
+                                                    ? "Đang tải thêm..."
+                                                    : "Xem thêm hội thoại cũ"}
+                                            </span>
+                                        </button>
+                                    )}
+                                </>
                             )}
                         </div>
 
@@ -444,10 +609,10 @@ function AITutor() {
                             <div className="sidebar-tip">
                                 <FontAwesomeIcon icon={faLightbulb} />
                                 <div>
-                                    <strong>Mẹo học tập</strong>
+                                    <strong>Mẹo học tập thông minh</strong>
                                     <p>
-                                        Hãy hỏi AI giải thích từng bước
-                                        để hiểu sâu hơn.
+                                        Dán mã nguồn và lỗi console để AI Tutor
+                                        hướng dẫn bạn tự debug theo phương pháp gợi mở.
                                     </p>
                                 </div>
                             </div>
@@ -456,24 +621,37 @@ function AITutor() {
                 )}
             </aside>
 
+            {/* MAIN CHAT AREA */}
             <main className="ai-main">
                 <header className="ai-topbar">
-                    <div>
-                        <span className="breadcrumb">JLearn</span>
-                        <span className="breadcrumb-separator">
-                            /
-                        </span>
-                        <strong>AI Tutor</strong>
+                    <div className="ai-topbar-left">
+                        {/* Nút ||| trong topbar luôn sẵn sàng mở/đóng sidebar, đặc biệt khi thu gọn hoặc trên mobile */}
+                        <button
+                            type="button"
+                            className="topbar-sidebar-toggle-btn"
+                            onClick={() => setSidebarOpen((value) => !value)}
+                            aria-label={sidebarOpen ? "Thu gọn thanh bên" : "Mở rộng thanh bên"}
+                            title={sidebarOpen ? "Thu gọn thanh bên" : "Mở rộng thanh bên"}
+                        >
+                            <FontAwesomeIcon icon={faBars} />
+                        </button>
+
+                        <div className="ai-topbar-title">
+                            <span className="breadcrumb">JLearn</span>
+                            <span className="breadcrumb-separator">/</span>
+                            <strong>
+                                {activeConversation?.title || "Trợ lý học tập AI"}
+                            </strong>
+                        </div>
                     </div>
 
                     <div className="ai-status">
                         <span className="status-dot" />
-                        Trợ lý học tập
-                        <FontAwesomeIcon icon={faChevronDown} />
+                        <span>Trực tuyến</span>
                     </div>
                 </header>
 
-                <section className="ai-chat">
+                <section className="ai-chat" ref={chatContainerRef}>
                     {messages.length === 0 ? (
                         <div className="ai-welcome">
                             <div className="welcome-orb">
@@ -493,10 +671,9 @@ function AITutor() {
                             </h1>
 
                             <p className="welcome-description">
-                                Mình là AI Tutor của JLearn. Hãy hỏi
-                                bất cứ điều gì về Java, Spring Boot
-                                hoặc lập trình. Mình sẽ đồng hành
-                                cùng bạn.
+                                Mình là <strong>AI Tutor của JLearn</strong>. Hãy đặt bất kỳ câu hỏi nào
+                                về Java Core, lập trình hướng đối tượng, Spring Boot hoặc yêu cầu
+                                phân tích lỗi code. Mình luôn sẵn sàng hỗ trợ!
                             </p>
 
                             <div className="suggestion-grid">
@@ -508,7 +685,8 @@ function AITutor() {
                                         disabled={loading}
                                         onClick={() =>
                                             void sendMessage(
-                                                item.description
+                                                item.prompt ||
+                                                    item.description
                                             )
                                         }
                                     >
@@ -525,6 +703,28 @@ function AITutor() {
                         </div>
                     ) : (
                         <div className="message-list">
+                            {/* Nút tải thêm tin nhắn trước đó (chỉ tải theo phân trang khi người dùng yêu cầu) */}
+                            {hasMoreMessages && (
+                                <div className="load-older-container">
+                                    <button
+                                        type="button"
+                                        className="load-older-btn"
+                                        onClick={loadOlderMessages}
+                                        disabled={loadingOlderMessages}
+                                    >
+                                        <FontAwesomeIcon
+                                            icon={faRotateRight}
+                                            spin={loadingOlderMessages}
+                                        />
+                                        <span>
+                                            {loadingOlderMessages
+                                                ? "Đang tải tin nhắn cũ..."
+                                                : "Tải tin nhắn trước đó"}
+                                        </span>
+                                    </button>
+                                </div>
+                            )}
+
                             {messages.map((message) => (
                                 <article
                                     className={`message-row ${
@@ -545,12 +745,27 @@ function AITutor() {
                                     </div>
 
                                     <div className="message-content">
-                                        <strong>
+                                        <span className="message-author">
                                             {message.role === "user"
                                                 ? "Bạn"
-                                                : "JLearn AI"}
-                                        </strong>
-                                        <p>{message.content}</p>
+                                                : "JLearn AI Tutor"}
+                                        </span>
+
+                                        <div className="message-bubble">
+                                            {message.role === "assistant" ? (
+                                                <div className="ai-markdown-content">
+                                                    <ReactMarkdown
+                                                        remarkPlugins={[remarkGfm]}
+                                                    >
+                                                        {message.content}
+                                                    </ReactMarkdown>
+                                                </div>
+                                            ) : (
+                                                <div style={{ whiteSpace: "pre-wrap" }}>
+                                                    {message.content}
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </article>
                             ))}
@@ -561,7 +776,7 @@ function AITutor() {
                                     <span />
                                     <span />
                                     <small>
-                                        AI Tutor đang suy nghĩ...
+                                        AI Tutor đang phân tích và soạn câu trả lời...
                                     </small>
                                 </div>
                             )}
@@ -583,6 +798,7 @@ function AITutor() {
                         </div>
                     )}
 
+                    {/* COMPOSER */}
                     <div className="composer-area">
                         <form
                             className="chat-composer"
@@ -606,10 +822,14 @@ function AITutor() {
                                         }
                                     }
                                 }}
-                                placeholder="Đặt câu hỏi cho AI Tutor..."
+                                placeholder={
+                                    loading
+                                        ? "AI Tutor đang phân tích và soạn câu trả lời..."
+                                        : "Đặt câu hỏi hoặc dán code + lỗi console tại đây..."
+                                }
                                 rows={2}
                                 maxLength={10000}
-                                disabled={loading}
+                                readOnly={loading}
                             />
 
                             <div className="composer-footer">
@@ -617,8 +837,7 @@ function AITutor() {
                                     <FontAwesomeIcon
                                         icon={faWandMagicSparkles}
                                     />
-                                    AI có thể mắc lỗi. Hãy kiểm tra
-                                    thông tin.
+                                    Enter để gửi · Shift + Enter xuống dòng
                                 </span>
 
                                 <button

@@ -4,31 +4,31 @@ import apiClient from "./apiClients";
 const BASE_PATH = "/ai-tutor/v1";
 
 function getErrorMessage(error) {
-    if (error.response) {
-        return (
-            error.response.data?.detail ||
-            error.response.data?.message ||
-            `Lỗi HTTP ${error.response.status}`
-        );
+    if (!error.response || error.code === "ERR_NETWORK") {
+        return "Không thể kết nối tới máy chủ.";
     }
 
-    if (error.code === "ECONNABORTED") {
-        return "Yêu cầu quá thời gian chờ.";
+    if (error.response?.status === 503 || error.response?.status === 502) {
+        return "Không thể kết nối tới máy chủ.";
     }
 
-    if (error.request) {
-        return "Không nhận được phản hồi từ máy chủ AI Tutor.";
-    }
-
-    return error.message || "Đã xảy ra lỗi không xác định.";
+    return (
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        "Không thể xử lý yêu cầu, vui lòng thử lại."
+    );
 }
 
 const aiTutorService = {
-    // Lấy danh sách hội thoại.
-    async getConversations() {
+    // Lấy danh sách hội thoại có phân trang (mặc định 20 cuộc trò chuyện gần nhất).
+    async getConversations(options = {}) {
+        const { limit = 20, skip = 0 } = options;
         try {
             const response = await apiClient.get(
-                `${BASE_PATH}/conversations`
+                `${BASE_PATH}/conversations`,
+                {
+                    params: { limit, skip },
+                }
             );
 
             return response.data;
@@ -68,17 +68,24 @@ const aiTutorService = {
         }
     },
 
-    // Lấy lịch sử tin nhắn của một hội thoại.
-    async getMessages(conversationId) {
+    // Lấy lịch sử tin nhắn của một hội thoại theo phân trang con trỏ (mặc định 20 tin nhắn gần nhất).
+    async getMessages(conversationId, options = {}) {
         if (!conversationId) {
             throw new Error("conversationId không được để trống.");
+        }
+
+        const { limit = 20, before_id = null } = options;
+        const params = { limit };
+        if (before_id) {
+            params.before_id = before_id;
         }
 
         try {
             const response = await apiClient.get(
                 `${BASE_PATH}/conversations/${encodeURIComponent(
                     conversationId
-                )}/messages`
+                )}/messages`,
+                { params }
             );
 
             return response.data;
@@ -130,6 +137,37 @@ const aiTutorService = {
                 getErrorMessage(error)
             );
             throw error;
+        }
+    },
+
+    // Phân tích lỗi code từ console (Use Case b)
+    async analyzeError(sourceCode, errorMessage, language = "java") {
+        const code = typeof sourceCode === "string" ? sourceCode.trim() : "";
+        const error = typeof errorMessage === "string" ? errorMessage.trim() : "";
+
+        if (!code || !error) {
+            throw new Error("Vui lòng nhập câu hỏi.");
+        }
+
+        try {
+            const response = await apiClient.post(
+                `${BASE_PATH}/tutor/analyze-error`,
+                {
+                    source_code: code,
+                    error_message: error,
+                    language: language,
+                },
+                {
+                    timeout: 60000,
+                }
+            );
+            return response.data;
+        } catch (err) {
+            console.error(
+                "[AI Tutor] analyzeError:",
+                getErrorMessage(err)
+            );
+            throw err;
         }
     },
 };

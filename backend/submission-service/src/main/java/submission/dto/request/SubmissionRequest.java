@@ -16,6 +16,9 @@ public class SubmissionRequest {
     @NotBlank(message = "EXERCISE_ID_REQUIRED")
     String exerciseId;
 
+    @NotBlank(message = "EXECUTION_ID_REQUIRED")
+    String executionId;
+
     @NotBlank(message = "SOURCE_CODE_REQUIRED")
     @Size(max = 100000, message = "SOURCE_CODE_TOO_LARGE")
     String sourceCode;

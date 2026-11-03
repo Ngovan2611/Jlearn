@@ -24,6 +24,7 @@ class ConversationResponse(BaseModel):
 
 class ConversationListResponse(BaseModel):
     result: list[ConversationResponse]
+    has_more: bool = False
 
 
 # =========================
@@ -47,6 +48,7 @@ class ChatMessageResponse(BaseModel):
 
 class ChatMessageListResponse(BaseModel):
     result: list[ChatMessageResponse]
+    has_more: bool = False
 
 
 # =========================
@@ -58,9 +60,4 @@ class SendMessageResponse(BaseModel):
     question: str
     answer: str
     intent: str
-    course_id: str | None = None
-    context: str = ""
-    sources: list[str] = Field(default_factory=list)
-    quality: dict = Field(default_factory=dict)
-    can_call_gemini: bool = False
-    gemini_used: bool = False
+    sources: list[str] = []

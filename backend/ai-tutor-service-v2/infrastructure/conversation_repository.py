@@ -43,16 +43,23 @@ class ConversationRepository:
     async def list_by_user(
         self,
         user_id: str,
-        limit: int = 50,
-    ) -> list[dict]:
+        limit: int = 20,
+        skip: int = 0,
+    ) -> tuple[list[dict], bool]:
         cursor = (
             conversations_collection
             .find({"user_id": user_id})
             .sort("updated_at", -1)
-            .limit(limit)
+            .skip(skip)
+            .limit(limit + 1)
         )
 
-        return await cursor.to_list(length=limit)
+        docs = await cursor.to_list(length=limit + 1)
+        has_more = len(docs) > limit
+        if has_more:
+            docs = docs[:limit]
+
+        return docs, has_more
 
     async def update_activity(
         self,

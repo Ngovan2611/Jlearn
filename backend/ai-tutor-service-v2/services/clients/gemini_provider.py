@@ -1,4 +1,6 @@
+import asyncio
 import logging
+from typing import Optional
 
 from google import genai
 
@@ -12,22 +14,39 @@ class GeminiProvider:
         self.client = genai.Client(api_key=settings.GEMINI_API_KEY)
         self.model_name = settings.GEMINI_MODEL
 
-    async def generate_answer(self, question: str, context: str) -> str:
-        prompt = (
-            "Bạn là AI Tutor của JLearn, trả lời dựa trên ngữ cảnh học tập.\n\n"
-            f"Câu hỏi: {question}\n\n"
-            f"Ngữ cảnh: {context}\n\n"
-            "Yêu cầu: trả lời ngắn gọn, rõ ràng, dễ hiểu và chuyên nghiệp. "
-            "Nếu không có đủ thông tin, hãy nói rõ và gợi ý cách tiếp tục."
+    async def generate_answer(
+        self,
+        question: str,
+        context: str = "",
+        system_instruction: Optional[str] = None,
+    ) -> str:
+        base_instruction = (
+            system_instruction
+            or "Bạn là AI Tutor của JLearn, trợ lý học tập lập trình Java và Spring Boot."
         )
 
-        try:
+        prompt_parts = [base_instruction, f"\n\nCâu hỏi: {question}"]
+
+        if context.strip():
+            prompt_parts.append(f"\n\nNgữ cảnh tài liệu bài học:\n{context}")
+
+        prompt_parts.append(
+            "\n\nYêu cầu: trả lời chính xác, dễ hiểu, theo văn phong sư phạm, kèm code ví dụ trực quan khi cần thiết."
+        )
+
+        full_prompt = "".join(prompt_parts)
+        return await self.generate_direct(full_prompt)
+
+    async def generate_direct(
+        self,
+        prompt: str,
+    ) -> str:
+        def _call_gemini():
             response = self.client.models.generate_content(
                 model=self.model_name,
                 contents=prompt,
             )
             text = getattr(response, "text", None)
-
             if text:
                 return text
 
@@ -43,6 +62,9 @@ class GeminiProvider:
                         return "".join(parts)
 
             return str(response)
+
+        try:
+            return await asyncio.to_thread(_call_gemini)
         except Exception:
             logger.exception("Gemini generation failed.")
             raise

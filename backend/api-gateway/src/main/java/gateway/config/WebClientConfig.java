@@ -22,45 +22,45 @@ public class WebClientConfig {
                 .build();
     }
 
-    @Bean
-    public CorsWebFilter corsWebFilter() {
-
-        CorsConfiguration corsConfiguration =
-                new CorsConfiguration();
-
-        // React frontend
-        corsConfiguration.setAllowedOrigins(
-                List.of("http://localhost:3000")
-        );
-
-        corsConfiguration.setAllowedMethods(
-                List.of(
-                        "GET",
-                        "POST",
-                        "PUT",
-                        "DELETE",
-                        "PATCH",
-                        "OPTIONS"
-                )
-        );
-
-        corsConfiguration.setAllowedHeaders(
-                List.of("*")
-        );
-
-        // Cho phép gửi Cookie
-        corsConfiguration.setAllowCredentials(true);
-
-        UrlBasedCorsConfigurationSource source =
-                new UrlBasedCorsConfigurationSource();
-
-        source.registerCorsConfiguration(
-                "/**",
-                corsConfiguration
-        );
-
-        return new CorsWebFilter(source);
-    }
+//    @Bean
+//    public CorsWebFilter corsWebFilter() {
+//
+//        CorsConfiguration corsConfiguration =
+//                new CorsConfiguration();
+//
+//        // React frontend
+//        corsConfiguration.setAllowedOrigins(
+//                List.of("http://localhost:3000")
+//        );
+//
+//        corsConfiguration.setAllowedMethods(
+//                List.of(
+//                        "GET",
+//                        "POST",
+//                        "PUT",
+//                        "DELETE",
+//                        "PATCH",
+//                        "OPTIONS"
+//                )
+//        );
+//
+//        corsConfiguration.setAllowedHeaders(
+//                List.of("*")
+//        );
+//
+//        // Cho phép gửi Cookie
+//        corsConfiguration.setAllowCredentials(true);
+//
+//        UrlBasedCorsConfigurationSource source =
+//                new UrlBasedCorsConfigurationSource();
+//
+//        source.registerCorsConfiguration(
+//                "/**",
+//                corsConfiguration
+//        );
+//
+//        return new CorsWebFilter(source);
+//    }
 
     @Bean
     public IdentityClient identityClient() {

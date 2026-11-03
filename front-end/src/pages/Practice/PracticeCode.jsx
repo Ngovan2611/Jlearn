@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -10,12 +11,18 @@ import {
     faXmark,
     faClock,
     faCircleQuestion,
+    faRobot,
+    faBug,
 } from "@fortawesome/free-solid-svg-icons";
 
 import submissionService from "../../services/submissionService";
 import exerciseService from "../../services/exerciseService";
 import codeExecutionService from "../../services/codeExecutionService";
 import "./Exercise.css";
+
+/* =========================================================
+   CONSTANTS
+========================================================= */
 
 const DEFAULT_CODE = `public class Main {
     public static void main(String[] args) {
@@ -33,19 +40,64 @@ const SNIPPETS = {
 }`,
 };
 
+const STATUS_LABELS = {
+    PASSED: "Đạt",
+    WRONG_ANSWER: "Sai kết quả",
+    TIME_LIMIT_EXCEEDED: "Quá thời gian",
+    COMPILATION_ERROR: "Lỗi biên dịch",
+    RUNTIME_ERROR: "Lỗi khi chạy",
+    FAILED: "Thất bại",
+    ERROR: "Lỗi",
+    PENDING: "Chưa chạy",
+};
+
+const GRADING_STATUS_LABELS = {
+    ACCEPTED: "Đạt",
+    ACCEPT: "Đạt",
+    PASSED: "Đạt",
+    PENDING: "Đang chờ chấm",
+    PROCESSING: "Đang xử lý",
+    RUNNING: "Đang chấm",
+    WAITING: "Đang chờ",
+    FAILED: "Thất bại",
+    REJECTED: "Không đạt",
+    WRONG_ANSWER: "Sai kết quả",
+    ERROR: "Lỗi",
+    TIME_LIMIT_EXCEEDED: "Quá thời gian",
+    MEMORY_LIMIT_EXCEEDED: "Vượt giới hạn bộ nhớ",
+};
+
+/* =========================================================
+   RESPONSE HELPERS
+========================================================= */
+
 const unwrapResponse = (response) =>
     response?.data?.result ?? response?.data ?? response ?? null;
 
 const getExerciseId = (exercise) =>
     exercise?.id ?? exercise?.exerciseId ?? exercise?._id ?? null;
 
-const isHiddenTest = (testCase) =>
-    testCase?.hidden === true ||
-    testCase?.hidden === 1 ||
-    String(testCase?.hidden).toLowerCase() === "true" ||
-    testCase?.isHidden === true ||
-    testCase?.isHidden === 1 ||
-    String(testCase?.isHidden).toLowerCase() === "true";
+const getExecutionId = (result) =>
+    result?.executionId ??
+    result?.execution_id ??
+    result?.execution?.executionId ??
+    null;
+
+const getErrorMessage = (error, fallback) =>
+    error?.response?.data?.message ||
+    error?.response?.data?.error ||
+    error?.message ||
+    fallback;
+
+const isHiddenTest = (testCase) => {
+    const hidden = testCase?.hidden ?? testCase?.isHidden;
+
+    return (
+        hidden === true ||
+        hidden === 1 ||
+        String(hidden).toLowerCase() === "true"
+    );
+};
 
 const normalizeStatus = (status) => {
     const value = String(status ?? "").trim().toUpperCase();
@@ -58,15 +110,21 @@ const normalizeStatus = (status) => {
         return "WRONG_ANSWER";
     }
 
-    if (["TIME_LIMIT_EXCEEDED", "TIME LIMIT EXCEEDED", "TLE"].includes(value)) {
+    if (
+        ["TIME_LIMIT_EXCEEDED", "TIME LIMIT EXCEEDED", "TLE"].includes(value)
+    ) {
         return "TIME_LIMIT_EXCEEDED";
     }
 
-    if (["COMPILATION_ERROR", "COMPILE_ERROR", "CE"].includes(value)) {
+    if (
+        ["COMPILATION_ERROR", "COMPILE_ERROR", "CE"].includes(value)
+    ) {
         return "COMPILATION_ERROR";
     }
 
-    if (["RUNTIME_ERROR", "RUNTIME_EXCEPTION", "RE"].includes(value)) {
+    if (
+        ["RUNTIME_ERROR", "RUNTIME_EXCEPTION", "RE"].includes(value)
+    ) {
         return "RUNTIME_ERROR";
     }
 
@@ -77,21 +135,36 @@ const normalizeStatus = (status) => {
     return "PENDING";
 };
 
-const STATUS_LABELS = {
-    PASSED: "Đạt",
-    WRONG_ANSWER: "Sai kết quả",
-    TIME_LIMIT_EXCEEDED: "Quá thời gian",
-    COMPILATION_ERROR: "Lỗi biên dịch",
-    RUNTIME_ERROR: "Lỗi khi chạy",
-    FAILED: "Thất bại",
-    ERROR: "Lỗi",
-    PENDING: "Chưa chạy",
-};
-
 const getStatusClass = (status) =>
     `status-${String(status || "PENDING")
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, "_")}`;
+
+const getGradingStatusLabel = (status) => {
+    const value = String(status ?? "").trim().toUpperCase();
+
+    return GRADING_STATUS_LABELS[value] || status || "Chưa xác định";
+};
+
+const formatDateTime = (value) => {
+    if (!value) return "Chưa có thông tin";
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return String(value);
+    }
+
+    return date.toLocaleString("vi-VN");
+};
+
+const formatScore = (score) => {
+    if (score === null || score === undefined || score === "") {
+        return "Chưa có điểm";
+    }
+
+    return score;
+};
 
 const getResultArray = (result) => {
     if (Array.isArray(result?.testCaseResults)) {
@@ -126,17 +199,22 @@ const getResultNumber = (result) => {
     }
 
     const number = Number(value);
+
     return Number.isFinite(number) ? number : null;
 };
 
 const getResultForTestCase = (testCase, index, results) => {
     const testCaseId =
-        testCase?.testCaseId ?? testCase?.id ?? testCase?._id;
+        testCase?.testCaseId ??
+        testCase?.id ??
+        testCase?._id;
 
     if (testCaseId != null) {
-        const byId = results.find((result) => {
+        const resultById = results.find((result) => {
             const resultId =
-                result?.testCaseId ?? result?.id ?? result?._id;
+                result?.testCaseId ??
+                result?.id ??
+                result?._id;
 
             return (
                 resultId != null &&
@@ -144,35 +222,135 @@ const getResultForTestCase = (testCase, index, results) => {
             );
         });
 
-        if (byId) return byId;
+        if (resultById) {
+            return resultById;
+        }
     }
 
-    const targetNumber =
-        getResultNumber(testCase) ?? index + 1;
+    const targetNumber = getResultNumber(testCase) ?? index + 1;
 
-    const byNumber = results.find(
+    const resultByNumber = results.find(
         (result) => getResultNumber(result) === targetNumber
     );
 
-    if (byNumber) return byNumber;
+    if (resultByNumber) {
+        return resultByNumber;
+    }
 
     return results[index] ?? null;
 };
 
+/* =========================================================
+   SUBMISSION HELPERS
+========================================================= */
+
+// Lấy bài nộp mới nhất từ nhiều dạng response.
+const getLatestSubmission = (data) => {
+    if (!data) return null;
+
+    let submissions;
+
+    if (Array.isArray(data)) {
+        submissions = data;
+    } else if (Array.isArray(data.content)) {
+        submissions = data.content;
+    } else if (Array.isArray(data.submissions)) {
+        submissions = data.submissions;
+    } else if (data.latestSubmission) {
+        return data.latestSubmission;
+    } else if (data.submission) {
+        return data.submission;
+    } else {
+        return data;
+    }
+
+    if (submissions.length === 0) {
+        return null;
+    }
+
+    return submissions
+        .slice()
+        .sort((a, b) =>
+            new Date(b.submittedAt || 0) -
+            new Date(a.submittedAt || 0)
+        )[0];
+};
+
+// Tạo nội dung hiển thị thông tin bài nộp.
+const buildSubmissionOutput = (
+    submission,
+    exerciseId,
+    prefix = "Thông tin bài nộp"
+) => {
+    const submissionId =
+        submission?.id ??
+        submission?.submissionId ??
+        submission?._id ??
+        "N/A";
+
+    const actualExerciseId =
+        submission?.exerciseId ?? exerciseId ?? "N/A";
+
+    const score = formatScore(submission?.score);
+
+    const gradingStatus = getGradingStatusLabel(
+        submission?.gradingStatus
+    );
+
+
+    const submittedAt = formatDateTime(submission?.submittedAt);
+
+    const feedback =
+        submission?.feedback || "Chưa có nhận xét từ hệ thống.";
+
+    return [
+        `========== ${prefix.toUpperCase()} ==========`,
+        `Mã bài nộp (ID): ${submissionId}`,
+        `Mã bài tập: ${actualExerciseId}`,
+        `Điểm: ${score}`,
+        `Trạng thái chấm: ${gradingStatus}`,
+        `Thời gian nộp: ${submittedAt}`,
+        "",
+        "Nhận xét:",
+        feedback,
+        "======================================",
+    ].join("\n");
+};
+
+/* =========================================================
+   COMPONENT
+========================================================= */
+
 function PracticeCode() {
     const { exerciseId } = useParams();
 
+    // Ngăn response cũ ghi đè dữ liệu mới.
+    const loadRequestRef = useRef(0);
+
+    /* =====================================================
+       STATE
+    ===================================================== */
+
     const [exercise, setExercise] = useState(null);
+
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+
+    const [reloadKey, setReloadKey] = useState(0);
 
     const [code, setCode] = useState(DEFAULT_CODE);
     const [input, setInput] = useState("");
 
     const [running, setRunning] = useState(false);
     const [submitting, setSubmitting] = useState(false);
+
     const [output, setOutput] = useState("");
     const [executionResult, setExecutionResult] = useState(null);
+    const [executionId, setExecutionId] = useState(null);
+
+    /* =====================================================
+       DERIVED DATA
+    ===================================================== */
 
     const testCases = useMemo(
         () =>
@@ -180,6 +358,11 @@ function PracticeCode() {
                 ? exercise.testCases
                 : [],
         [exercise]
+    );
+
+    const publicTestCases = useMemo(
+        () => testCases.filter((testCase) => !isHiddenTest(testCase)),
+        [testCases]
     );
 
     const testResults = useMemo(
@@ -204,121 +387,126 @@ function PracticeCode() {
             (result) => normalizeStatus(result?.status) === "PASSED"
         );
 
-    const canSubmit = !running && !submitting && allTestsPassed;
+    // Không bắt buộc tất cả testcase phải PASS.
+    // Chỉ cần lần Run hiện tại có executionId và executionResult.
+    const canSubmit =
+        !loading &&
+        !running &&
+        !submitting &&
+        Boolean(executionId) &&
+        Boolean(executionResult);
+
+    /* =====================================================
+       EXECUTION STATE
+    ===================================================== */
 
     const clearExecutionResult = () => {
         setExecutionResult(null);
+        setExecutionId(null);
         setOutput("");
     };
 
-    // Hàm kiểm tra và nạp lại mã nguồn bài nộp gần nhất từ backend
-    const fetchAndSetUserCode = async (id, fallbackCode) => {
-        try {
-            const subRes = await submissionService.getMySubmissionByExercise(id);
-            const subData = unwrapResponse(subRes);
+    const getFirstPublicInput = (currentExercise) => {
+        const cases = Array.isArray(currentExercise?.testCases)
+            ? currentExercise.testCases
+            : [];
 
-            if (subData?.sourceCode) {
-                setCode(subData.sourceCode);
-                setOutput(
-                    `[Thông báo] Đã tải bài làm gần nhất của bạn (Nộp ngày: ${
-                        subData.submittedAt
-                            ? new Date(subData.submittedAt).toLocaleString("vi-VN")
-                            : "N/A"
-                    })`
-                );
-                return;
-            }
-        } catch {
-            // Chưa nộp bài hoặc chưa từng lưu -> dùng starterCode
-        }
-        setCode(fallbackCode);
+        return (
+            cases.find((testCase) => !isHiddenTest(testCase))?.input ?? ""
+        );
     };
 
-    const loadExercise = useCallback(async () => {
-        try {
-            setLoading(true);
-            setError("");
-            clearExecutionResult();
-
-            const response =
-                await exerciseService.getExerciseById(exerciseId);
-
-            const data = unwrapResponse(response);
-
-            if (!data) {
-                setExercise(null);
-                setError("Không tìm thấy bài tập.");
-                return;
-            }
-
-            setExercise(data);
-
-            const defaultCode = data.starterCode || DEFAULT_CODE;
-            await fetchAndSetUserCode(exerciseId, defaultCode);
-
-            const firstPublicTest = Array.isArray(data.testCases)
-                ? data.testCases.find((testCase) => !isHiddenTest(testCase))
-                : null;
-
-            setInput(firstPublicTest?.input ?? "");
-        } catch (err) {
-            console.error("Load practice exercise error:", err);
-
-            setExercise(null);
-            setError(
-                err.response?.data?.message ||
-                    "Không thể tải bài tập."
-            );
-        } finally {
-            setLoading(false);
-        }
-    }, [exerciseId]);
+    /* =====================================================
+       LOAD EXERCISE + PREVIOUS SUBMISSION
+    ===================================================== */
 
     useEffect(() => {
         let cancelled = false;
 
-        const fetchExercise = async () => {
-            try {
-                setLoading(true);
-                setError("");
-                clearExecutionResult();
+        const requestId = ++loadRequestRef.current;
 
+        const isCurrentRequest = () =>
+            !cancelled && requestId === loadRequestRef.current;
+
+        const fetchExercise = async () => {
+            setLoading(true);
+            setError("");
+            setExercise(null);
+            setExecutionResult(null);
+            setExecutionId(null);
+            setOutput("");
+
+            try {
                 const response =
                     await exerciseService.getExerciseById(exerciseId);
 
-                if (cancelled) return;
+                if (!isCurrentRequest()) return;
 
-                const data = unwrapResponse(response);
+                const exerciseData = unwrapResponse(response);
 
-                if (!data) {
-                    setExercise(null);
-                    setError("Không tìm thấy bài tập.");
-                    return;
+                if (!exerciseData) {
+                    throw new Error("Không tìm thấy bài tập.");
                 }
 
-                setExercise(data);
+                setExercise(exerciseData);
 
-                const defaultCode = data.starterCode || DEFAULT_CODE;
-                await fetchAndSetUserCode(exerciseId, defaultCode);
+                const defaultCode =
+                    exerciseData.starterCode || DEFAULT_CODE;
 
-                const firstPublicTest = Array.isArray(data.testCases)
-                    ? data.testCases.find(
-                          (testCase) => !isHiddenTest(testCase)
-                      )
-                    : null;
+                setInput(getFirstPublicInput(exerciseData));
 
-                setInput(firstPublicTest?.input ?? "");
+                // Lấy bài nộp gần nhất của người dùng.
+                try {
+                    const submissionResponse =
+                        await submissionService.getMySubmissionByExercise(
+                            exerciseId
+                        );
+
+                    if (!isCurrentRequest()) return;
+
+                    const submissionData =
+                        unwrapResponse(submissionResponse);
+
+                    const submission =
+                        getLatestSubmission(submissionData);
+
+                    if (submission?.sourceCode) {
+                        setCode(submission.sourceCode);
+
+                        setOutput(
+                            buildSubmissionOutput(
+                                submission,
+                                exerciseId,
+                                "Đã khôi phục bài làm gần nhất"
+                            ) 
+                            
+                        );
+                    } else {
+                        setCode(defaultCode);
+                    }
+                } catch (submissionError) {
+                    if (!isCurrentRequest()) return;
+
+                    console.error(
+                        "Get previous submission error:",
+                        submissionError
+                    );
+
+                    // Chưa có bài nộp trước đó.
+                    setCode(defaultCode);
+                }
             } catch (err) {
-                if (cancelled) return;
+                if (!isCurrentRequest()) return;
 
                 console.error("Load practice exercise error:", err);
 
+                setExercise(null);
+
                 setError(
-                    err.response?.data?.message ||
-                        "Không thể tải bài tập."
+                    getErrorMessage(err, "Không thể tải bài tập.")
                 );
             } finally {
-                if (!cancelled) {
+                if (isCurrentRequest()) {
                     setLoading(false);
                 }
             }
@@ -328,11 +516,17 @@ function PracticeCode() {
 
         return () => {
             cancelled = true;
+            loadRequestRef.current += 1;
         };
-    }, [exerciseId]);
+    }, [exerciseId, reloadKey]);
+
+    /* =====================================================
+       CODE EDITOR
+    ===================================================== */
 
     const getCurrentWord = (textarea) => {
         const cursor = textarea.selectionStart;
+
         const beforeCursor = textarea.value.substring(0, cursor);
         const match = beforeCursor.match(/[a-zA-Z]+$/);
 
@@ -363,8 +557,22 @@ function PracticeCode() {
         return true;
     };
 
+    const handleCodeChange = (event) => {
+        setCode(event.target.value);
+        clearExecutionResult();
+    };
+
+    const handleInputChange = (event) => {
+        setInput(event.target.value);
+        clearExecutionResult();
+    };
+
     const handleCodeKeyDown = (event) => {
         const textarea = event.currentTarget;
+
+        if (running || submitting) {
+            return;
+        }
 
         if (event.key === "Tab") {
             event.preventDefault();
@@ -376,6 +584,7 @@ function PracticeCode() {
             if (start === end) {
                 if (!event.shiftKey) {
                     textarea.setRangeText(tab, start, end, "end");
+
                     setCode(textarea.value);
                     clearExecutionResult();
                     return;
@@ -392,8 +601,8 @@ function PracticeCode() {
                 const removeLength = linePrefix.startsWith(tab)
                     ? tab.length
                     : linePrefix.startsWith("\t")
-                      ? 1
-                      : 0;
+                        ? 1
+                        : 0;
 
                 if (removeLength > 0) {
                     textarea.setRangeText(
@@ -415,12 +624,12 @@ function PracticeCode() {
 
             const updatedLines = event.shiftKey
                 ? lines.map((line) =>
-                      line.startsWith(tab)
-                          ? line.substring(tab.length)
-                          : line.startsWith("\t")
+                    line.startsWith(tab)
+                        ? line.substring(tab.length)
+                        : line.startsWith("\t")
                             ? line.substring(1)
                             : line
-                  )
+                )
                 : lines.map((line) => tab + line);
 
             textarea.setRangeText(
@@ -432,6 +641,7 @@ function PracticeCode() {
 
             setCode(textarea.value);
             clearExecutionResult();
+
             return;
         }
 
@@ -440,17 +650,25 @@ function PracticeCode() {
 
             if (currentWord && SNIPPETS[currentWord.word]) {
                 event.preventDefault();
-                insertSnippet(textarea, SNIPPETS[currentWord.word]);
+
+                insertSnippet(
+                    textarea,
+                    SNIPPETS[currentWord.word]
+                );
             }
         }
     };
 
+    /* =====================================================
+       RUN CODE
+    ===================================================== */
+
     const handleRunCode = async () => {
-        if (!exercise || running) return;
+        if (!exercise || running || submitting) return;
 
         if (!code.trim()) {
             setOutput("Vui lòng nhập code trước khi chạy.");
-            setExecutionResult(null);
+            clearExecutionResult();
             return;
         }
 
@@ -458,94 +676,127 @@ function PracticeCode() {
 
         if (id == null) {
             setOutput("Không xác định được ID bài tập.");
+            clearExecutionResult();
             return;
         }
 
-        setRunning(true);
+        // Xóa kết quả cũ, không cho Submit bằng lần Run trước.
         setExecutionResult(null);
+        setExecutionId(null);
+
+        setRunning(true);
         setOutput("Đang chạy chương trình...");
 
         try {
-            const consoleResponse = await codeExecutionService.execute({
-                sourceCode: code,
-                language: exercise.language || "JAVA",
-                stdin: input,
-                timeoutMs: Math.max(
-                    Number(exercise.timeLimit) || 5000,
-                    10000
-                ),
-            });
+            /*
+             * API 1:
+             * Chạy code với input do người dùng nhập.
+             */
+            const consoleResponse =
+                await codeExecutionService.execute({
+                    sourceCode: code,
+                    language: exercise.language || "JAVA",
+                    stdin: input,
+                    timeoutMs: Math.max(
+                        Number(exercise.timeLimit) || 5000,
+                        10000
+                    ),
+                });
 
             const consoleResult = unwrapResponse(consoleResponse);
 
-            if (consoleResult) {
-                const lines = [];
+            const lines = [];
 
-                if (consoleResult.stdout) {
-                    lines.push(consoleResult.stdout);
-                }
-
-                if (consoleResult.stderr) {
-                    lines.push(
-                        "----- ERROR -----",
-                        consoleResult.stderr
-                    );
-                }
-
-                if (!consoleResult.stdout && !consoleResult.stderr) {
-                    lines.push("Chương trình không có output.");
-                }
-
-                setOutput(lines.join("\n"));
-            } else {
-                setOutput("Không nhận được output từ chương trình.");
+            if (consoleResult?.stdout) {
+                lines.push(consoleResult.stdout);
             }
 
-            const testResponse = await codeExecutionService.runExercise({
-                exerciseId: id,
-                sourceCode: code,
-                language: exercise.language || "JAVA",
-            });
+            if (consoleResult?.stderr) {
+                lines.push("----- ERROR -----", consoleResult.stderr);
+            }
+
+            if (!consoleResult?.stdout && !consoleResult?.stderr) {
+                lines.push("Chương trình không có output.");
+            }
+
+            setOutput(lines.join("\n"));
+
+            /*
+             * API 2:
+             * Chạy toàn bộ testcase.
+             * Execution Service trả executionId để Submit tái sử dụng.
+             */
+            const testResponse =
+                await codeExecutionService.runExercise({
+                    exerciseId: id,
+                    sourceCode: code,
+                    language: exercise.language || "JAVA",
+                });
 
             const testResult = unwrapResponse(testResponse);
-            setExecutionResult(testResult);
 
+            if (!testResult || typeof testResult !== "object") {
+                throw new Error(
+                    "API chạy test case không trả về kết quả hợp lệ."
+                );
+            }
+
+            const returnedExecutionId = getExecutionId(testResult);
+
+            if (!returnedExecutionId) {
+                throw new Error(
+                    "Execution Service chưa trả về executionId. " +
+                    "Không thể nộp kết quả Run này."
+                );
+            }
+
+            setExecutionResult(testResult);
+            setExecutionId(String(returnedExecutionId));
         } catch (err) {
             console.error("Run code error:", err);
 
             setOutput(
-                err.response?.data?.message ||
-                err.response?.data?.error ||
-                "Không thể chạy chương trình."
+                getErrorMessage(err, "Không thể chạy chương trình.")
             );
 
             setExecutionResult(null);
+            setExecutionId(null);
         } finally {
             setRunning(false);
         }
     };
 
+    /* =====================================================
+       RESET CODE
+    ===================================================== */
+
     const handleReset = () => {
         if (running || submitting) return;
 
         setCode(exercise?.starterCode || DEFAULT_CODE);
+        setInput(getFirstPublicInput(exercise));
 
-        const firstPublicTest = Array.isArray(exercise?.testCases)
-            ? exercise.testCases.find(
-                  (testCase) => !isHiddenTest(testCase)
-              )
-            : null;
-
-        setInput(firstPublicTest?.input ?? "");
         clearExecutionResult();
     };
+
+    /* =====================================================
+       SUBMIT CODE
+    ===================================================== */
 
     const handleSubmit = async () => {
         if (!canSubmit || submitting) return;
 
         const id = getExerciseId(exercise);
+
         if (!id) {
             setOutput("Không tìm thấy ID bài tập để nộp.");
+            return;
+        }
+
+        if (!executionId) {
+            setOutput(
+                "Không tìm thấy executionId. Vui lòng chạy code lại trước khi nộp."
+            );
             return;
         }
 
@@ -555,29 +806,66 @@ function PracticeCode() {
         try {
             const payload = {
                 exerciseId: id,
+                executionId,
                 sourceCode: code,
-                language: exercise?.language || "JAVA",
+                language: exercise.language || "JAVA",
             };
 
-            const response = await submissionService.submit(payload);
+            const response =
+                await submissionService.submit(payload);
+
             const result = unwrapResponse(response);
 
-            setOutput(
-                `Nộp bài thành công!\n` +
-                `Mã bài nộp (ID): ${result?.id || "N/A"}\n` +
-                `Trạng thái: ${result?.gradingStatus || "PENDING"}\n` +
-                `Thời gian nộp: ${new Date(result?.submittedAt || Date.now()).toLocaleString("vi-VN")}`
-            );
+            if (result && typeof result === "object") {
+                setOutput(
+                    buildSubmissionOutput(
+                        result,
+                        id,
+                        "Nộp bài thành công"
+                    )
+                );
+            } else {
+                setOutput(
+                    "Nộp bài thành công nhưng hệ thống chưa trả về thông tin chi tiết."
+                );
+            }
         } catch (err) {
             console.error("Submit error:", err);
+
             setOutput(
                 "Lỗi khi nộp bài: " +
-                (err.response?.data?.message || err.message || "Không thể kết nối đến Submission Service.")
+                getErrorMessage(
+                    err,
+                    "Không thể kết nối đến Submission Service."
+                )
             );
         } finally {
             setSubmitting(false);
         }
     };
+
+    /* =====================================================
+       RETRY LOAD EXERCISE
+    ===================================================== */
+
+    const handleRetry = () => {
+        setError("");
+        setExercise(null);
+        setLoading(true);
+
+        setCode(DEFAULT_CODE);
+        setInput("");
+
+        setExecutionResult(null);
+        setExecutionId(null);
+        setOutput("");
+
+        setReloadKey((previous) => previous + 1);
+    };
+
+    /* =====================================================
+       UI HELPERS
+    ===================================================== */
 
     const getDifficultyClass = (difficulty) => {
         switch (String(difficulty ?? "").toUpperCase()) {
@@ -622,11 +910,14 @@ function PracticeCode() {
                 <div className="testcase-card-header">
                     <div className="testcase-name">
                         <span>
-                            Test case {getResultNumber(testCase) ?? index + 1}
+                            Test case{" "}
+                            {getResultNumber(testCase) ?? index + 1}
                         </span>
 
                         {hidden && (
-                            <span className="hidden-badge">Test ẩn</span>
+                            <span className="hidden-badge">
+                                Test ẩn
+                            </span>
                         )}
                     </div>
 
@@ -638,12 +929,13 @@ function PracticeCode() {
                                 status === "PASSED"
                                     ? faCheck
                                     : status === "PENDING"
-                                      ? faCircleQuestion
-                                      : faXmark
+                                        ? faCircleQuestion
+                                        : faXmark
                             }
                         />
 
-                        {STATUS_LABELS[status] || STATUS_LABELS.PENDING}
+                        {STATUS_LABELS[status] ||
+                            STATUS_LABELS.PENDING}
                     </span>
                 </div>
 
@@ -682,6 +974,10 @@ function PracticeCode() {
         );
     };
 
+    /* =====================================================
+       LOADING
+    ===================================================== */
+
     if (loading) {
         return (
             <div className="exercise-page">
@@ -693,14 +989,24 @@ function PracticeCode() {
         );
     }
 
+    /* =====================================================
+       ERROR
+    ===================================================== */
+
     if (error || !exercise) {
         return (
             <div className="exercise-page">
                 <div className="exercise-error">
                     <FontAwesomeIcon icon={faCircleExclamation} />
-                    <span>{error || "Không tìm thấy bài tập."}</span>
 
-                    <Link to="/practice" className="exercise-back">
+                    <span>
+                        {error || "Không tìm thấy bài tập."}
+                    </span>
+
+                    <Link
+                        to="/practice"
+                        className="exercise-back"
+                    >
                         <FontAwesomeIcon icon={faArrowLeft} />
                         <span>Quay lại luyện tập</span>
                     </Link>
@@ -708,7 +1014,7 @@ function PracticeCode() {
                     <button
                         type="button"
                         className="reset-button"
-                        onClick={loadExercise}
+                        onClick={handleRetry}
                     >
                         Thử lại
                     </button>
@@ -717,22 +1023,26 @@ function PracticeCode() {
         );
     }
 
-    const publicTestCases = Array.isArray(exercise.testCases)
-        ? exercise.testCases.filter((testCase) => !isHiddenTest(testCase))
-        : [];
+    /* =====================================================
+       MAIN UI
+    ===================================================== */
 
     return (
         <div className="exercise-page">
             <main className="exercise-main practice-code-main">
                 <div className="exercise-topbar">
-                    <Link to="/practice" className="exercise-back">
+                    <Link
+                        to="/practice"
+                        className="exercise-back"
+                    >
                         <FontAwesomeIcon icon={faArrowLeft} />
                         <span>Quay lại luyện tập</span>
                     </Link>
                 </div>
 
                 <div className="exercise-layout">
-                    {/* Đề bài */}
+                    {/* ================= ĐỀ BÀI ================= */}
+
                     <section className="problem-panel">
                         <div className="problem-header">
                             <div className="problem-badges">
@@ -834,7 +1144,8 @@ function PracticeCode() {
                         </div>
                     </section>
 
-                    {/* Editor & Console & Test Cases Results */}
+                    {/* ================= CODE EDITOR ================= */}
+
                     <section className="code-panel">
                         <div className="code-card">
                             <div className="code-header">
@@ -849,17 +1160,17 @@ function PracticeCode() {
                             <textarea
                                 className="code-editor"
                                 value={code}
-                                onChange={(event) => {
-                                    setCode(event.target.value);
-                                    clearExecutionResult();
-                                }}
+                                onChange={handleCodeChange}
                                 onKeyDown={handleCodeKeyDown}
+                                disabled={running || submitting}
                                 spellCheck={false}
                                 autoCorrect="off"
                                 autoCapitalize="off"
                                 autoComplete="off"
                                 aria-label="Trình soạn thảo mã nguồn"
                             />
+
+                            {/* INPUT */}
 
                             <div className="input-section">
                                 <div className="input-header">
@@ -872,10 +1183,8 @@ function PracticeCode() {
                                 <textarea
                                     className="program-input"
                                     value={input}
-                                    onChange={(event) => {
-                                        setInput(event.target.value);
-                                        clearExecutionResult();
-                                    }}
+                                    onChange={handleInputChange}
+                                    disabled={running || submitting}
                                     placeholder="Nhập dữ liệu đầu vào..."
                                     spellCheck={false}
                                     autoCorrect="off"
@@ -883,6 +1192,8 @@ function PracticeCode() {
                                     autoComplete="off"
                                 />
                             </div>
+
+                            {/* ACTIONS */}
 
                             <div className="code-actions">
                                 <button
@@ -892,9 +1203,7 @@ function PracticeCode() {
                                     disabled={running || submitting}
                                 >
                                     <FontAwesomeIcon
-                                        icon={
-                                            running ? faSpinner : faPlay
-                                        }
+                                        icon={running ? faSpinner : faPlay}
                                         spin={running}
                                     />
 
@@ -919,8 +1228,8 @@ function PracticeCode() {
                                     disabled={!canSubmit}
                                     title={
                                         canSubmit
-                                            ? "Tất cả test case đã đạt"
-                                            : "Chạy và vượt qua tất cả test case trước khi nộp"
+                                            ? "Nộp bài để hệ thống chấm điểm"
+                                            : "Hãy chạy code trước khi nộp"
                                     }
                                 >
                                     {submitting ? "Đang nộp..." : "Nộp bài"}
@@ -928,13 +1237,43 @@ function PracticeCode() {
                             </div>
                         </div>
 
+                        {/* CONSOLE OUTPUT */}
+
                         <section className="output-section">
-                            <h2>Kết quả chạy chương trình</h2>
+                            <div className="output-section-header">
+                                <h2>Kết quả chạy chương trình</h2>
+                                {output && output !== "Đang chạy chương trình..." && (
+                                    <button
+                                        type="button"
+                                        className="btn-ai-analyze-error"
+                                        onClick={() => {
+                                            window.dispatchEvent(
+                                                new CustomEvent(
+                                                    "jlearn:open-error-analysis",
+                                                    {
+                                                        detail: {
+                                                            sourceCode: code,
+                                                            errorMessage: output,
+                                                        },
+                                                    }
+                                                )
+                                            );
+                                        }}
+                                        title="Mở AI Tutor để phân tích nguyên nhân lỗi và nhận gợi ý"
+                                    >
+                                        <FontAwesomeIcon icon={faRobot} />
+                                        <span>Nhờ AI phân tích lỗi</span>
+                                    </button>
+                                )}
+                            </div>
+
                             <pre>
                                 {output ||
                                     "Kết quả thực thi sẽ hiển thị tại đây."}
                             </pre>
                         </section>
+
+                        {/* TESTCASE RESULTS */}
 
                         <section className="testcases-section">
                             <div className="testcases-header">
@@ -948,9 +1287,7 @@ function PracticeCode() {
 
                                 <span
                                     className={`testcases-overall ${
-                                        allTestsPassed
-                                            ? "passed"
-                                            : "failed"
+                                        allTestsPassed ? "passed" : "failed"
                                     }`}
                                 >
                                     {allTestsPassed
@@ -970,8 +1307,7 @@ function PracticeCode() {
                                         (_, index) => {
                                             const testCase =
                                                 testCases[index] ?? {
-                                                    testCaseNumber:
-                                                        index + 1,
+                                                    testCaseNumber: index + 1,
                                                     hidden: true,
                                                 };
 
@@ -995,21 +1331,18 @@ function PracticeCode() {
                                     <strong>
                                         {allTestsPassed
                                             ? "Hoàn thành: tất cả test case đã đạt."
-                                            : "Chưa đạt: hãy kiểm tra lại code và chạy lại."}
+                                            : "Chưa đạt: bạn vẫn có thể nộp bài để AI phân tích source code."}
                                     </strong>
 
                                     <span>
-                                        Số test đã đạt: {passedCount}/
-                                        {knownTotal}
+                                        Số test đã đạt: {passedCount}/{knownTotal}
                                     </span>
 
-                                    {!allTestsPassed && (
-                                        <span>
-                                            Nút Nộp bài chỉ bật khi API
-                                            trả về đủ kết quả và tất cả
-                                            test case đều đạt.
-                                        </span>
-                                    )}
+                                    <span>
+                                        {executionId
+                                            ? "Đã lưu kết quả thực thi, có thể Submit."
+                                            : "Không có executionId hợp lệ. Vui lòng chạy lại code."}
+                                    </span>
                                 </div>
                             )}
                         </section>

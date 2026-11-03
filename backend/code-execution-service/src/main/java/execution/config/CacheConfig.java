@@ -15,13 +15,23 @@ public class CacheConfig {
 
     @Bean
     public CacheManager cacheManager() {
-        CaffeineCacheManager manager =
-                new CaffeineCacheManager("exerciseExecutionData");
 
-        manager.setCaffeine(
+        CaffeineCacheManager manager = new CaffeineCacheManager();
+
+        manager.registerCustomCache(
+                "exerciseExecutionData",
                 Caffeine.newBuilder()
                         .maximumSize(1_000)
                         .expireAfterWrite(5, TimeUnit.MINUTES)
+                        .build()
+        );
+
+        manager.registerCustomCache(
+                "executionResults",
+                Caffeine.newBuilder()
+                        .maximumSize(2_000)
+                        .expireAfterWrite(10, TimeUnit.MINUTES)
+                        .build()
         );
 
         return manager;

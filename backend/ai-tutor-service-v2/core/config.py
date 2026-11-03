@@ -1,4 +1,3 @@
-
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -16,6 +15,21 @@ class Settings(BaseSettings):
 
     # Course Service
     COURSE_SERVICE_BASE_URL: str = "http://localhost:8083"
+
+    # Exercise Service
+    EXERCISE_SERVICE_BASE_URL: str = "http://localhost:8084"
+
+    # User Service
+    USER_SERVICE_BASE_URL: str = "http://localhost:8082"
+
+    # Enrollment Service
+    ENROLLMENT_SERVICE_BASE_URL: str = "http://localhost:8085"
+
+    # Submission Service
+    SUBMISSION_SERVICE_BASE_URL: str = "http://localhost:8086"
+
+    # HTTP Client
+    SERVICE_TIMEOUT_SECONDS: float = 10.0
 
     # ChromaDB
     CHROMA_PATH: str = "./data/chroma"

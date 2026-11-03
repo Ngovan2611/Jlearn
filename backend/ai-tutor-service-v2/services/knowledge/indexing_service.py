@@ -102,20 +102,23 @@ class IndexingService:
             str(lesson.get("content") or "")
         )
 
-        # Không index chỉ dựa trên tiêu đề.
-        if not content:
-            print(
-                f"Bỏ qua bài học không có content: "
-                f"{title or lesson_id}"
-            )
+        # Nếu không có cả nội dung lẫn mô tả thì bỏ qua
+        if not content and not description:
             return 0
 
         document_text = (
-            f"Khóa học: {course_id}\n"
+            f"Khóa học: {course_title or course_id}\n"
             f"Bài học: {title}\n"
             f"Mô tả: {description}\n"
             f"Nội dung:\n{content}"
         ).strip()
+
+        content_hash = hashlib.md5(document_text.encode("utf-8")).hexdigest()
+
+        # Kiểm tra nếu nội dung bài học không đổi thì bỏ qua để tiết kiệm tài nguyên
+        existing = self.vector_store.get_chunks(course_id=course_id, lesson_id=lesson_id)
+        if existing and existing[0].get("metadata", {}).get("content_hash") == content_hash:
+            return len(existing)
 
         text_chunks = self.split_text(document_text)
 
@@ -138,6 +141,7 @@ class IndexingService:
                     "lesson_title": title or lesson_id,
                     "source": f"course:{course_id}/lesson:{lesson_id}",
                     "chunk_index": index,
+                    "content_hash": content_hash,
                 },
             })
 

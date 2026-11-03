@@ -1,30 +1,44 @@
+import logging
+
+from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException, Query
-from core.auth import get_current_user_id
+
+from core.auth import (
+    AuthContext,
+    get_current_auth_context,
+    get_current_user_id,
+)
+
 from domain.conversation import serialize_conversation
 from domain.chat_message import serialize_chat_message
-from services.tutor.tutor_service import TutorService
-from datetime import datetime, timezone
-from fastapi import Depends, HTTPException
-from bson import ObjectId
-from schemas.conversation import ChatMessageRequest
+
 from infrastructure.conversation_repository import conversation_repository
 from infrastructure.chat_message_repository import chat_message_repository
+
 from schemas.conversation import (
     ConversationCreateRequest,
-    ConversationResponse,
     ConversationListResponse,
-    ChatMessageResponse,
+    ChatMessageRequest,
     ChatMessageListResponse,
 )
+
+from services.tutor.tutor_service import TutorService
+
+
+logger = logging.getLogger(__name__)
+
 tutor_service = TutorService()
+
 router = APIRouter(
     prefix="/conversations",
     tags=["AI Tutor - Conversation History"],
 )
 
 
+# =========================================================
+# 1. CREATE CONVERSATION
+# =========================================================
 
-# 1. Tạo hội thoại
 @router.post(
     "",
     response_model=dict,
@@ -52,18 +66,23 @@ async def create_conversation(
     }
 
 
-# 2. Lấy danh sách hội thoại của người dùng
+# =========================================================
+# 2. LIST USER CONVERSATIONS
+# =========================================================
+
 @router.get(
     "",
     response_model=ConversationListResponse,
 )
 async def list_conversations(
-    limit: int = Query(default=50, ge=1, le=100),
+    limit: int = Query(default=20, ge=1, le=100),
+    skip: int = Query(default=0, ge=0),
     user_id: str = Depends(get_current_user_id),
 ):
-    conversations = await conversation_repository.list_by_user(
+    conversations, has_more = await conversation_repository.list_by_user(
         user_id=user_id,
         limit=limit,
+        skip=skip,
     )
 
     return {
@@ -71,19 +90,32 @@ async def list_conversations(
             serialize_conversation(conversation)
             for conversation in conversations
         ],
+        "has_more": has_more,
     }
 
 
-# 3. Lấy lịch sử tin nhắn của một hội thoại
+# =========================================================
+# 3. GET CONVERSATION MESSAGES
+# =========================================================
+
 @router.get(
     "/{conversation_id}/messages",
     response_model=ChatMessageListResponse,
 )
 async def get_conversation_messages(
     conversation_id: str,
-    limit: int = Query(default=100, ge=1, le=200),
+    limit: int = Query(default=20, ge=1, le=100),
+    before_id: str | None = Query(default=None),
     user_id: str = Depends(get_current_user_id),
 ):
+    # 1. Validate ObjectId
+    if not ObjectId.is_valid(conversation_id):
+        raise HTTPException(
+            status_code=400,
+            detail="conversation_id không hợp lệ.",
+        )
+
+    # 2. Verify conversation ownership
     conversation = await conversation_repository.find_by_id(
         conversation_id=conversation_id,
         user_id=user_id,
@@ -95,10 +127,12 @@ async def get_conversation_messages(
             detail="Không tìm thấy hội thoại.",
         )
 
-    messages = await chat_message_repository.list_by_conversation(
+    # 3. Retrieve messages with cursor pagination
+    messages, has_more = await chat_message_repository.list_by_conversation(
         user_id=user_id,
         conversation_id=conversation_id,
         limit=limit,
+        before_id=before_id,
     )
 
     return {
@@ -106,29 +140,45 @@ async def get_conversation_messages(
             serialize_chat_message(message)
             for message in messages
         ],
+        "has_more": has_more,
     }
-@router.post("/{conversation_id}/messages")
+
+
+# =========================================================
+# 4. SEND MESSAGE TO AI TUTOR
+# =========================================================
+
+@router.post(
+    "/{conversation_id}/messages",
+    response_model=dict,
+)
 async def send_message(
     conversation_id: str,
     request: ChatMessageRequest,
-    user_id: str = Depends(get_current_user_id),
+
+    # Xác thực người dùng và lấy JWT
+    auth: AuthContext = Depends(get_current_auth_context),
 ):
-    # 1. Kiểm tra định dạng ID
+    user_id = auth.account_id
+    access_token = auth.access_token
+
+    # 1. Validate conversation ID
     if not ObjectId.is_valid(conversation_id):
         raise HTTPException(
             status_code=400,
             detail="conversation_id không hợp lệ.",
         )
 
+    # 2. Validate question
     question = request.question.strip()
 
     if not question:
         raise HTTPException(
             status_code=400,
-            detail="Câu hỏi không được để trống.",
+            detail="Vui lòng nhập câu hỏi.",
         )
 
-    # 2. Chỉ cho phép truy cập hội thoại của chính người dùng
+    # 3. Verify conversation ownership
     conversation = await conversation_repository.find_by_id(
         conversation_id=conversation_id,
         user_id=user_id,
@@ -140,7 +190,7 @@ async def send_message(
             detail="Không tìm thấy hội thoại.",
         )
 
-    # 3. Lưu câu hỏi trước khi gọi AI
+    # 4. Save user message
     user_message = await chat_message_repository.create(
         user_id=user_id,
         conversation_id=conversation_id,
@@ -148,15 +198,27 @@ async def send_message(
         content=question,
     )
 
-    # 4. Gọi dịch vụ AI hiện tại
+    # 5. Process AI Tutor
     try:
-        result = await tutor_service.chat(question=question)
-        answer = result.get("answer", "")
+        logger.info(
+            "AI Tutor processing started | user_id=%s | conversation_id=%s",
+            user_id,
+            conversation_id,
+        )
+
+        # Truyền access token để truy vấn dữ liệu
+        # từ User, Enrollment, Course, Submission Service.
+        result = await tutor_service.chat(
+            question=question,
+            access_token=access_token,
+        )
+
+        answer = result.get("answer", "").strip()
 
         if not answer:
             answer = "Xin lỗi, AI Tutor chưa thể tạo câu trả lời."
 
-        # 5. Lưu câu trả lời của AI
+        # 6. Save assistant message
         assistant_message = await chat_message_repository.create(
             user_id=user_id,
             conversation_id=conversation_id,
@@ -164,39 +226,54 @@ async def send_message(
             content=answer,
         )
 
-    except Exception:
-        # Câu hỏi vẫn được giữ lại trong lịch sử.
-        # Không trả thông tin lỗi nội bộ ra client.
+        # 7. Update conversation activity
+        await conversation_repository.update_activity(
+            conversation_id=conversation_id,
+            user_id=user_id,
+        )
+
+        logger.info(
+            "AI Tutor processing completed | user_id=%s | intent=%s",
+            user_id,
+            result.get("intent"),
+        )
+
+        # 8. Return response
+        return {
+            "result": {
+                "conversation_id": conversation_id,
+
+                "user_message": {
+                    "id": str(user_message["_id"]),
+                    "role": user_message["role"],
+                    "content": user_message["content"],
+                    "created_at": user_message["created_at"],
+                },
+
+                "assistant_message": {
+                    "id": str(assistant_message["_id"]),
+                    "role": assistant_message["role"],
+                    "content": assistant_message["content"],
+                    "created_at": assistant_message["created_at"],
+                },
+
+                "intent": result.get("intent"),
+                "sources": result.get("sources", []),
+            }
+        }
+
+    except Exception as exc:
+        logger.exception(
+            "AI Tutor processing failed | user_id=%s | conversation_id=%s",
+            user_id,
+            conversation_id,
+        )
+
+        # User message vẫn được giữ trong MongoDB.
+        # Không trả thông tin lỗi nội bộ ra frontend.
         raise HTTPException(
             status_code=502,
             detail=(
-                "AI Tutor không thể xử lý câu hỏi. "
-                "Câu hỏi đã được lưu vào lịch sử."
+                "Không thể xử lý yêu cầu, vui lòng thử lại."
             ),
-        )
-
-    # 6. Cập nhật thời gian hoạt động của hội thoại
-    await conversation_repository.update_activity(
-        conversation_id=conversation_id,
-        user_id=user_id,
-    )
-
-    return {
-        "result": {
-            "conversation_id": conversation_id,
-            "user_message": {
-                "id": str(user_message["_id"]),
-                "role": user_message["role"],
-                "content": user_message["content"],
-                "created_at": user_message["created_at"],
-            },
-            "assistant_message": {
-                "id": str(assistant_message["_id"]),
-                "role": assistant_message["role"],
-                "content": assistant_message["content"],
-                "created_at": assistant_message["created_at"],
-            },
-            "intent": result.get("intent"),
-            "sources": result.get("sources", []),
-        }
-    }
+        ) from exc

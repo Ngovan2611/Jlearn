@@ -3,6 +3,7 @@ package execution.dto.response;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.Instant;
 import java.util.List;
 
 @Getter
@@ -13,7 +14,13 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class RunExerciseResponse {
 
+    String executionId;
+
     String exerciseId;
+
+    String sourceCodeHash;
+
+    String testcaseVersion;
 
     String status;
 
@@ -24,6 +31,11 @@ public class RunExerciseResponse {
     int passedTestCases;
 
     long executionTimeMs;
+
+
+    Instant executedAt;
+
+    Instant expiresAt;
 
     List<TestCaseResult> testCaseResults;
 

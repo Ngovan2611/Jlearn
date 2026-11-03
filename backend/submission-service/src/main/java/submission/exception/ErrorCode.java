@@ -18,7 +18,9 @@ public enum ErrorCode {
     INVALID_TOKEN(1314, "invalid token", HttpStatus.UNAUTHORIZED),
     ROLE_NOT_EXISTED(1003, "role not existed", HttpStatus.BAD_REQUEST),
     UNAUTHORIZED(1004, "You dont have permission", HttpStatus.BAD_REQUEST),
-    SUBMISSION_NOT_FOUND(1015, "submission not found", HttpStatus.NOT_FOUND);
+    SUBMISSION_NOT_FOUND(1015, "submission not found", HttpStatus.NOT_FOUND),
+    EXECUTION_NOT_FOUND(1016, "execution not found", HttpStatus.NOT_FOUND),
+    EXECUTION_VERIFICATION_FAILED(1017, "execution verify failed", HttpStatus.BAD_REQUEST);
 
 
 

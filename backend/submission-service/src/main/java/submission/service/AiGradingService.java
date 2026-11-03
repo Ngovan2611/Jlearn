@@ -1,6 +1,7 @@
 package submission.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import submission.repository.SubmissionRepository;
 
 import java.time.Instant;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AiGradingService {
@@ -41,10 +43,12 @@ public class AiGradingService {
                     .submissionId(submission.getId())
                     .userId(submission.getUserId())
                     .exerciseId(submission.getExerciseId())
-                    .sourceCode(submission.getSourceCode())
-                    .language(submission.getLanguage())
+                    .sourceCode(submission.getSourceCode() != null ? submission.getSourceCode() : "")
+                    .language(submission.getLanguage() != null ? submission.getLanguage() : "java")
                     .maxScore(100)
                     .build();
+
+            log.info("Dispatching AI grading request for submission {} to {}", submissionId, gradePath);
 
             AiGradingResponse result = aiTutorRestClient.post()
                     .uri(gradePath)
@@ -60,7 +64,7 @@ public class AiGradingService {
                     || result.getSubmissionId() == null
                     || !submissionId.equals(result.getSubmissionId())) {
                 throw new IllegalStateException(
-                        "AI Tutor returned an invalid grading result"
+                        "AI Tutor returned an invalid grading result: " + result
                 );
             }
 
@@ -69,7 +73,10 @@ public class AiGradingService {
             submission.setGradingStatus(GradingStatus.COMPLETED);
             submission.setGradedAt(Instant.now());
 
+            log.info("AI grading completed successfully for submission {}: score={}", submissionId, result.getScore());
+
         } catch (Exception exception) {
+            log.error("AI grading failed for submission {}: {}", submissionId, exception.getMessage(), exception);
             submission.setGradingStatus(GradingStatus.FAILED);
             submission.setScore(null);
             submission.setFeedback(null);

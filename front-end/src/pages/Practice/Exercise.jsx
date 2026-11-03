@@ -1,3 +1,4 @@
+
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -13,6 +14,7 @@ import {
     faClock,
     faCircleQuestion,
 } from "@fortawesome/free-solid-svg-icons";
+
 import submissionService from "../../services/submissionService";
 import exerciseService from "../../services/exerciseService";
 import codeExecutionService from "../../services/codeExecutionService";
@@ -89,6 +91,28 @@ const STATUS_LABELS = {
     PENDING: "Chưa chạy",
 };
 
+const getGradingStatusLabel = (status) => {
+    const value = String(status ?? "").trim().toUpperCase();
+
+    const labels = {
+        ACCEPTED: "Đạt",
+        ACCEPT: "Đạt",
+        PASSED: "Đạt",
+        PENDING: "Đang chờ chấm",
+        PROCESSING: "Đang xử lý",
+        RUNNING: "Đang chấm",
+        WAITING: "Đang chờ",
+        FAILED: "Thất bại",
+        REJECTED: "Không đạt",
+        WRONG_ANSWER: "Sai kết quả",
+        ERROR: "Lỗi",
+        TIME_LIMIT_EXCEEDED: "Quá thời gian",
+        MEMORY_LIMIT_EXCEEDED: "Vượt giới hạn bộ nhớ",
+    };
+
+    return labels[value] || status || "Chưa xác định";
+};
+
 const getStatusClass = (status) =>
     `status-${String(status || "PENDING")
         .toLowerCase()
@@ -160,6 +184,81 @@ const getResultForTestCase = (testCase, index, results) => {
     return results[index] ?? null;
 };
 
+// Chuẩn hóa dữ liệu bài nộp từ các kiểu response phổ biến.
+const getLatestSubmission = (data) => {
+    if (!data) return null;
+
+    if (Array.isArray(data)) {
+        return data[0] ?? null;
+    }
+
+    if (Array.isArray(data.content)) {
+        return data.content[0] ?? null;
+    }
+
+    if (Array.isArray(data.submissions)) {
+        return data.submissions[0] ?? null;
+    }
+
+    if (data.latestSubmission) {
+        return data.latestSubmission;
+    }
+
+    if (data.submission) {
+        return data.submission;
+    }
+
+    return data;
+};
+
+const formatDateTime = (value) => {
+    if (!value) return "Chưa có thông tin";
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return String(value);
+    }
+
+    return date.toLocaleString("vi-VN");
+};
+
+const formatScore = (score) => {
+    if (score === null || score === undefined || score === "") {
+        return "Chưa có điểm";
+    }
+
+    return score;
+};
+
+const buildSubmissionOutput = (submission, exerciseId, prefix = "") => {
+    const submissionId = submission?.id ?? submission?._id ?? "N/A";
+    const actualExerciseId = submission?.exerciseId ?? exerciseId ?? "N/A";
+    const score = formatScore(submission?.score);
+    const gradingStatus = getGradingStatusLabel(
+        submission?.gradingStatus
+    );
+    const submittedAt = formatDateTime(submission?.submittedAt);
+    const feedback =
+        submission?.feedback || "Chưa có nhận xét từ hệ thống.";
+
+    return [
+        prefix,
+        "========== THÔNG TIN BÀI NỘP ==========",
+        `Mã bài nộp (ID): ${submissionId}`,
+        `Mã bài tập: ${actualExerciseId}`,
+        `Điểm: ${score}`,
+        `Trạng thái chấm: ${gradingStatus}`,
+        `Thời gian nộp: ${submittedAt}`,
+        "",
+        "Nhận xét:",
+        feedback,
+        "======================================",
+    ]
+        .filter((line) => line !== "")
+        .join("\n");
+};
+
 function Exercise() {
     const { lessonId } = useParams();
 
@@ -176,6 +275,8 @@ function Exercise() {
     const [running, setRunning] = useState(false);
     const [output, setOutput] = useState("");
     const [executionResult, setExecutionResult] = useState(null);
+    const [executionId, setExecutionId] = useState(null);
+    const [submitting, setSubmitting] = useState(false);
 
     const [sidebarOpen, setSidebarOpen] = useState(true);
 
@@ -209,10 +310,16 @@ function Exercise() {
             (result) => normalizeStatus(result?.status) === "PASSED"
         );
 
-    const canSubmit = !running && allTestsPassed;
+    // Cho phép nộp khi test chưa đạt để AI Tutor phân tích source code.
+    const canSubmit =
+        !running &&
+        !submitting &&
+        Boolean(executionId) &&
+        Boolean(executionResult);
 
     const clearExecutionResult = () => {
         setExecutionResult(null);
+        setExecutionId(null);
         setOutput("");
     };
 
@@ -224,27 +331,34 @@ function Exercise() {
         return cases.find((item) => !isHiddenTest(item))?.input ?? "";
     };
 
-    // Hàm kiểm tra và nạp lại mã nguồn bài nộp gần nhất của user
+    // Tải lại mã nguồn và thông tin bài nộp gần nhất.
     const fetchAndSetUserCode = async (exerciseId, fallbackCode) => {
         try {
-            const subRes = await submissionService.getMySubmissionByExercise(exerciseId);
-            const subData = unwrapResponse(subRes);
+            const subRes =
+                await submissionService.getMySubmissionByExercise(exerciseId);
 
-            if (subData?.sourceCode) {
-                setCode(subData.sourceCode);
+            const subData = unwrapResponse(subRes);
+            const submission = getLatestSubmission(subData);
+
+            if (submission?.sourceCode) {
+                setCode(submission.sourceCode);
+
                 setOutput(
-                    `[Thông báo] Đã tải bài làm gần nhất của bạn (Nộp ngày: ${
-                        subData.submittedAt
-                            ? new Date(subData.submittedAt).toLocaleString("vi-VN")
-                            : "N/A"
-                    })`
+                    buildSubmissionOutput(
+                        submission,
+                        exerciseId,
+                        "[Thông báo] Đã khôi phục bài làm gần nhất của bạn."
+                    ) +
+                    "\n\nMã nguồn bài làm đã được nạp vào trình soạn thảo."
                 );
+
                 return;
             }
-        } catch {
-            // Chưa nộp bài hoặc chưa từng lưu -> dùng starterCode
+        } catch (err) {
+            console.error("Get previous submission error:", err);
         }
-        setCode(fallbackCode);
+
+        setCode(fallbackCode || DEFAULT_CODE);
     };
 
     const loadExerciseDetail = async (exercise) => {
@@ -270,10 +384,8 @@ function Exercise() {
             setSelectedExercise(detail);
             setInput(getFirstPublicInput(detail));
 
-            // Kiểm tra xem user đã từng nộp bài này chưa để nạp lại sourceCode
             const defaultCode = detail?.starterCode || DEFAULT_CODE;
             await fetchAndSetUserCode(exerciseId, defaultCode);
-
         } catch (err) {
             console.error("Get exercise detail error:", err);
 
@@ -294,6 +406,7 @@ function Exercise() {
             setExercises([]);
             setSelectedExercise(null);
             setExecutionResult(null);
+            setExecutionId(null);
             setOutput("");
 
             try {
@@ -340,6 +453,7 @@ function Exercise() {
                     setInput(getFirstPublicInput(detail));
 
                     const defaultCode = detail?.starterCode || DEFAULT_CODE;
+
                     await fetchAndSetUserCode(firstId, defaultCode);
 
                 } catch (detailError) {
@@ -509,6 +623,7 @@ function Exercise() {
         if (!code.trim()) {
             setOutput("Vui lòng nhập code trước khi chạy.");
             setExecutionResult(null);
+            setExecutionId(null);
             return;
         }
 
@@ -521,6 +636,7 @@ function Exercise() {
 
         setRunning(true);
         setExecutionResult(null);
+        setExecutionId(null);
         setOutput("Đang chạy chương trình...");
 
         try {
@@ -545,10 +661,7 @@ function Exercise() {
                 }
 
                 if (consoleResult.stderr) {
-                    lines.push(
-                        "----- ERROR -----",
-                        consoleResult.stderr
-                    );
+                    lines.push("----- ERROR -----", consoleResult.stderr);
                 }
 
                 if (!consoleResult.stdout && !consoleResult.stderr) {
@@ -560,7 +673,7 @@ function Exercise() {
                 setOutput("Không nhận được output từ chương trình.");
             }
 
-            // API 2: Chấm toàn bộ test case để xác định có được nộp bài không.
+            // API 2: Chạy toàn bộ test case.
             const testResponse = await codeExecutionService.runExercise({
                 exerciseId,
                 sourceCode: code,
@@ -569,7 +682,25 @@ function Exercise() {
 
             const testResult = unwrapResponse(testResponse);
 
+            if (!testResult || typeof testResult !== "object") {
+                throw new Error(
+                    "API chạy test case không trả về kết quả hợp lệ."
+                );
+            }
+
+            const returnedExecutionId =
+                testResult.executionId ??
+                testResult.execution_id ??
+                null;
+
+            if (!returnedExecutionId) {
+                throw new Error(
+                    "Execution Service chưa trả về executionId. Không thể nộp kết quả Run này."
+                );
+            }
+
             setExecutionResult(testResult);
+            setExecutionId(String(returnedExecutionId));
 
         } catch (err) {
             console.error("Run code error:", err);
@@ -577,10 +708,12 @@ function Exercise() {
             setOutput(
                 err.response?.data?.message ||
                 err.response?.data?.error ||
+                err.message ||
                 "Không thể chạy chương trình."
             );
 
             setExecutionResult(null);
+            setExecutionId(null);
         } finally {
             setRunning(false);
         }
@@ -594,12 +727,11 @@ function Exercise() {
         clearExecutionResult();
     };
 
-    const [submitting, setSubmitting] = useState(false);
-
     const handleSubmit = async () => {
         if (!canSubmit || submitting) return;
 
         const exerciseId = getExerciseId(selectedExercise);
+
         if (!exerciseId) {
             setOutput("Không tìm thấy ID bài tập để nộp.");
             return;
@@ -610,25 +742,36 @@ function Exercise() {
 
         try {
             const payload = {
-                exerciseId: exerciseId,
+                exerciseId,
+                executionId,
                 sourceCode: code,
-                language: selectedExercise?.language || "JAVA"
+                language: selectedExercise?.language || "JAVA",
             };
 
             const response = await submissionService.submit(payload);
             const result = unwrapResponse(response);
 
-            setOutput(
-                ` Nộp bài thành công!\n` +
-                `Mã bài nộp (ID): ${result?.id || "N/A"}\n` +
-                `Trạng thái: ${result?.gradingStatus || "PENDING"}\n` +
-                `Thời gian nộp: ${new Date(result?.submittedAt).toLocaleString("vi-VN")}`
-            );
+            if (result && typeof result === "object") {
+                setOutput(
+                    buildSubmissionOutput(
+                        result,
+                        exerciseId,
+                        "Nộp bài thành công!"
+                    )
+                );
+            } else {
+                setOutput(
+                    "Nộp bài thành công nhưng hệ thống chưa trả về thông tin chi tiết."
+                );
+            }
         } catch (err) {
             console.error("Submit error:", err);
+
             setOutput(
-                " Lỗi khi nộp bài: " +
-                (err.response?.data?.message || err.message || "Không thể kết nối đến Submission Service.")
+                "Lỗi khi nộp bài: " +
+                (err.response?.data?.message ||
+                    err.message ||
+                    "Không thể kết nối đến Submission Service.")
             );
         } finally {
             setSubmitting(false);
@@ -664,8 +807,8 @@ function Exercise() {
         return (
             <article
                 className={`testcase-card ${hasResult
-                        ? `has-result ${getStatusClass(status)}`
-                        : ""
+                    ? `has-result ${getStatusClass(status)}`
+                    : ""
                     }`}
                 key={
                     testCase?.testCaseId ??
@@ -889,13 +1032,11 @@ function Exercise() {
                                                 selectedExercise.difficulty
                                             )}`}
                                         >
-                                            {selectedExercise.difficulty ||
-                                                "N/A"}
+                                            {selectedExercise.difficulty || "N/A"}
                                         </span>
 
                                         <span className="problem-language">
-                                            {selectedExercise.language ||
-                                                "JAVA"}
+                                            {selectedExercise.language || "JAVA"}
                                         </span>
 
                                         {selectedExercise.timeLimit != null && (
@@ -934,9 +1075,7 @@ function Exercise() {
                                     <div className="problem-block">
                                         <h2>Bài mẫu</h2>
                                         <div className="example-box">
-                                            <pre>
-                                                {selectedExercise.example}
-                                            </pre>
+                                            <pre>{selectedExercise.example}</pre>
                                         </div>
                                     </div>
                                 )}
@@ -973,8 +1112,7 @@ function Exercise() {
                                                         <div>
                                                             <strong>Input</strong>
                                                             <pre>
-                                                                {testCase?.input ??
-                                                                    ""}
+                                                                {testCase?.input ?? ""}
                                                             </pre>
                                                         </div>
 
@@ -1047,22 +1185,14 @@ function Exercise() {
                                             type="button"
                                             className="run-button"
                                             onClick={handleRunCode}
-                                            disabled={
-                                                running || loadingDetail
-                                            }
+                                            disabled={running || loadingDetail}
                                         >
                                             <FontAwesomeIcon
-                                                icon={
-                                                    running
-                                                        ? faSpinner
-                                                        : faPlay
-                                                }
+                                                icon={running ? faSpinner : faPlay}
                                                 spin={running}
                                             />
 
-                                            {running
-                                                ? "Đang chạy..."
-                                                : "Chạy thử"}
+                                            {running ? "Đang chạy..." : "Chạy thử"}
                                         </button>
 
                                         <button
@@ -1081,8 +1211,8 @@ function Exercise() {
                                             disabled={!canSubmit || submitting}
                                             title={
                                                 canSubmit
-                                                    ? "Tất cả test case đã đạt"
-                                                    : "Chạy và vượt qua tất cả test case trước khi nộp"
+                                                    ? "Nộp bài và gửi kết quả Run cho AI Tutor chấm"
+                                                    : "Hãy chạy thử để tạo kết quả hợp lệ trước khi nộp"
                                             }
                                         >
                                             {submitting ? "Đang nộp..." : "Nộp bài"}
@@ -1110,8 +1240,8 @@ function Exercise() {
 
                                         <span
                                             className={`testcases-overall ${allTestsPassed
-                                                    ? "passed"
-                                                    : "failed"
+                                                ? "passed"
+                                                : "failed"
                                                 }`}
                                         >
                                             {allTestsPassed
@@ -1131,8 +1261,7 @@ function Exercise() {
                                                 (_, index) => {
                                                     const testCase =
                                                         testCases[index] ?? {
-                                                            testCaseNumber:
-                                                                index + 1,
+                                                            testCaseNumber: index + 1,
                                                             hidden: true,
                                                         };
 
@@ -1148,8 +1277,8 @@ function Exercise() {
                                     {executionResult && (
                                         <div
                                             className={`test-summary ${allTestsPassed
-                                                    ? "summary-success"
-                                                    : "summary-failed"
+                                                ? "summary-success"
+                                                : "summary-failed"
                                                 }`}
                                         >
                                             <strong>
@@ -1159,15 +1288,12 @@ function Exercise() {
                                             </strong>
 
                                             <span>
-                                                Số test đã đạt: {passedCount}/
-                                                {knownTotal}
+                                                Số test đã đạt: {passedCount}/{knownTotal}
                                             </span>
 
                                             {!allTestsPassed && (
                                                 <span>
-                                                    Nút Nộp bài chỉ bật khi API
-                                                    trả về đủ kết quả và tất cả
-                                                    test case đều đạt.
+                                                    Bạn vẫn có thể nộp bài khi test chưa đạt để AI Tutor phân tích lỗi và đánh giá source code.
                                                 </span>
                                             )}
                                         </div>
