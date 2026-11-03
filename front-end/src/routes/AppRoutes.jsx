@@ -21,7 +21,7 @@ import Lesson from "../pages/Lesson/Lesson";
 import Exercise from "../pages/Practice/Exercise";
 import Practice from "../pages/Practice/Practice";
 import PracticeCode from "../pages/Practice/PracticeCode";
-import MyCourses from "../pages/enrollment/MyCourses";
+import MyCourses from "../pages/Enrollment/MyCourses";
 
 // Admin Pages & Layout
 import AdminLayout from "../layout/AdminLayout/AdminLayout";

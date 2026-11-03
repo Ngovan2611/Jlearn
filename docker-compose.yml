@@ -1,0 +1,265 @@
+# ==============================================================================
+# Docker Compose cho hệ sinh thái JLearn Microservices
+# Chạy đồng bộ toàn bộ cơ sở dữ liệu và các dịch vụ trên bất kỳ máy tính nào
+# Lệnh khởi chạy: docker compose up -d
+# ==============================================================================
+
+services:
+  # ----------------------------------------------------------------------------
+  # CƠ SỞ DỮ LIỆU & HẠ TẦNG (DATABASES & INFRASTRUCTURE)
+  # ----------------------------------------------------------------------------
+  mysql:
+    image: mysql:8.0
+    container_name: jlearn-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD:-200405}
+      MYSQL_DATABASE: JLEARN
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - jlearn-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_PASSWORD:-200405}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongodb:
+    image: mongo:7.0
+    container_name: jlearn-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - jlearn-network
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: jlearn-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - jlearn-network
+
+  neo4j:
+    image: neo4j:5.15
+    container_name: jlearn-neo4j
+    restart: unless-stopped
+    environment:
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:-neo4j123456}
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - neo4j_data:/data
+    networks:
+      - jlearn-network
+
+  # ----------------------------------------------------------------------------
+  # DỊCH VỤ TRÍ TUỆ NHÂN TẠO (AI TUTOR SERVICE - FASTAPI)
+  # ----------------------------------------------------------------------------
+  ai-tutor-service:
+    build:
+      context: ./backend/ai-tutor-service-v2
+      dockerfile: Dockerfile
+    container_name: jlearn-ai-tutor
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_ENV=production
+      - MONGODB_URI=mongodb://mongodb:27017
+      - MONGODB_DATABASE=jlearn_ai_tutor
+      - CHROMA_PATH=/app/data/chroma
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-flash}
+      - JWT_SIGNER_KEY=${JWT_SIGNER_KEY:-6bb97f6aa2d6b1e5a0596bb10325703b535de4093d4ff67b62e8c5deca3b35f7}
+      - COURSE_SERVICE_BASE_URL=http://course-service:8083
+      - EXERCISE_SERVICE_BASE_URL=http://exercise-service:8084
+      - USER_SERVICE_BASE_URL=http://user-service:8082
+      - ENROLLMENT_SERVICE_BASE_URL=http://enrollment-service:8085
+      - SUBMISSION_SERVICE_BASE_URL=http://submission-service:8086
+      - AUTH_INTROSPECT_URL=http://auth-service:8081/auth/introspect
+    volumes:
+      - chroma_data:/app/data/chroma
+    depends_on:
+      - mongodb
+    networks:
+      - jlearn-network
+
+  # ----------------------------------------------------------------------------
+  # CỔNG ĐIỀU PHỐI (API GATEWAY)
+  # ----------------------------------------------------------------------------
+  api-gateway:
+    build:
+      context: ./backend/api-gateway
+      dockerfile: Dockerfile
+    container_name: jlearn-api-gateway
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+    depends_on:
+      - redis
+    networks:
+      - jlearn-network
+
+  # ----------------------------------------------------------------------------
+  # MICROSERVICES NGHIỆP VỤ (SPRING BOOT)
+  # ----------------------------------------------------------------------------
+  auth-service:
+    build:
+      context: ./backend/auth-service
+      dockerfile: Dockerfile
+    container_name: jlearn-auth-service
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/JLEARN?useSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=${MYSQL_PASSWORD:-200405}
+      - APP_SERVICES_PROFILE=http://user-service:8082/profile
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - jlearn-network
+
+  user-service:
+    build:
+      context: ./backend/user-service
+      dockerfile: Dockerfile
+    container_name: jlearn-user-service
+    restart: unless-stopped
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_NEO4J_URI=bolt://neo4j:7687
+      - SPRING_NEO4J_AUTHENTICATION_USERNAME=neo4j
+      - SPRING_NEO4J_AUTHENTICATION_PASSWORD=${NEO4J_PASSWORD:-neo4j123456}
+    depends_on:
+      - neo4j
+    networks:
+      - jlearn-network
+
+  course-service:
+    build:
+      context: ./backend/course-service
+      dockerfile: Dockerfile
+    container_name: jlearn-course-service
+    restart: unless-stopped
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_MONGODB_URI=mongodb://mongodb:27017/jlearn-course
+    depends_on:
+      - mongodb
+    networks:
+      - jlearn-network
+
+  exercise-service:
+    build:
+      context: ./backend/exercise-service
+      dockerfile: Dockerfile
+    container_name: jlearn-exercise-service
+    restart: unless-stopped
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/jlearn_exercise
+      - COURSE_SERVICE_URL=http://course-service:8083
+    depends_on:
+      - mongodb
+    networks:
+      - jlearn-network
+
+  enrollment-service:
+    build:
+      context: ./backend/enrollment-service
+      dockerfile: Dockerfile
+    container_name: jlearn-enrollment-service
+    restart: unless-stopped
+    ports:
+      - "8085:8085"
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/jlearn_enrollment
+      - COURSE_SERVICE_URL=http://course-service:8083
+      - APP_SERVICES_USER=http://user-service:8082
+    depends_on:
+      - mongodb
+    networks:
+      - jlearn-network
+
+  submission-service:
+    build:
+      context: ./backend/submission-service
+      dockerfile: Dockerfile
+    container_name: jlearn-submission-service
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/jlearn_submission
+      - SERVICES_EXECUTION_URL=http://code-execution-service:8087
+      - AI_TUTOR_URL=http://ai-tutor-service:8000
+    depends_on:
+      - mongodb
+    networks:
+      - jlearn-network
+
+  code-execution-service:
+    build:
+      context: ./backend/code-execution-service
+      dockerfile: Dockerfile
+    container_name: jlearn-code-execution-service
+    restart: unless-stopped
+    ports:
+      - "8087:8087"
+    environment:
+      - SERVICES_EXERCISE_URL=http://exercise-service:8084
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - jlearn-network
+
+  # ----------------------------------------------------------------------------
+  # GIAO DIỆN HỌC VIÊN (FRONTEND REACT + NGINX)
+  # ----------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./front-end
+      dockerfile: Dockerfile
+    container_name: jlearn-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api-gateway
+    networks:
+      - jlearn-network
+
+# ------------------------------------------------------------------------------
+# VOLUMES & MẠNG NỘI BỘ DOCKER (DOCKER VOLUMES & NETWORK)
+# ------------------------------------------------------------------------------
+networks:
+  jlearn-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
+  mongo_data:
+    driver: local
+  neo4j_data:
+    driver: local
+  chroma_data:
+    driver: local
