@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: course-service
+
+  mongodb:
+    uri: mongodb://localhost:27017/jlearn-course
+
+server:
+  port: 8083

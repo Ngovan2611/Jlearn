@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: code-execution-service
+
+server:
+  port: 8087
+
+services:
+  exercise:
+    url: http://localhost:8084

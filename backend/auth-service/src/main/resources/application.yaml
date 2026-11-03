@@ -1,0 +1,23 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: auth-service
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/JLEARN
+    username: root
+    password: 200405
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+jwt:
+  signerKey: "6bb97f6aa2d6b1e5a0596bb10325703b535de4093d4ff67b62e8c5deca3b35f7"
+
+app:
+  services:
+    profile: http://localhost:8082/profile

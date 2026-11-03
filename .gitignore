@@ -5,21 +5,14 @@
 # Maven
 target/
 
-# Spring configuration - DO NOT PUSH
-application.yaml
-application.yml
-application.properties
-
-# Local configuration
+# Spring configuration - DO NOT PUSH local configs
 application-local.yaml
 application-local.yml
 application-local.properties
 
 # Environment
 .env
-
-# Environment
-.env
+.env.local
 .venv/
 venv/
 
@@ -39,10 +32,7 @@ chroma_db/
 .vscode/
 
 # Logs
-*.log
-
-# Logs
-logs
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -50,9 +40,9 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+node_modules/
+dist/
+dist-ssr/
 *.local
 
 # Editor directories and files

@@ -62,6 +62,19 @@ services:
       - jlearn-network
 
   # ----------------------------------------------------------------------------
+  # MÔI TRƯỜNG SANDBOX CHẠY CODE JAVA (JAVA RUNNER IMAGE)
+  # Tự động build image jlearn-java-runner:21 cho code-execution-service
+  # ----------------------------------------------------------------------------
+  java-runner:
+    build:
+      context: ./backend/code-execution-service/docker/java-runner
+      dockerfile: Dockerfile
+    image: jlearn-java-runner:21
+    container_name: jlearn-java-runner
+    command: ["echo", "JLearn Java Runner 21 Image is Ready"]
+    restart: "no"
+
+  # ----------------------------------------------------------------------------
   # DỊCH VỤ TRÍ TUỆ NHÂN TẠO (AI TUTOR SERVICE - FASTAPI)
   # ----------------------------------------------------------------------------
   ai-tutor-service:
@@ -77,7 +90,7 @@ services:
       - MONGODB_URI=mongodb://mongodb:27017
       - MONGODB_DATABASE=jlearn_ai_tutor
       - CHROMA_PATH=/app/data/chroma
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-dummy_key_please_set_in_env}
       - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-flash}
       - JWT_SIGNER_KEY=${JWT_SIGNER_KEY:-6bb97f6aa2d6b1e5a0596bb10325703b535de4093d4ff67b62e8c5deca3b35f7}
       - COURSE_SERVICE_BASE_URL=http://course-service:8083
@@ -228,6 +241,9 @@ services:
       - SERVICES_EXERCISE_URL=http://exercise-service:8084
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      java-runner:
+        condition: service_completed_successfully
     networks:
       - jlearn-network
 
