@@ -1,0 +1,30 @@
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Python cache & compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Git & IDEs
+.git/
+.gitignore
+.idea/
+.vscode/
+
+# Local env files with sensitive keys
+.env
+.env.local
+
+# Local temporary data
+*.log
+logs/
+.DS_Store
+Thumbs.db
